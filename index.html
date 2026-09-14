@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astra Cinematic Studio</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --card-color: #1f2833;
+            --accent-color: #c5a059;
+            --text-main: #ffffff;
+            --text-muted: #c5a059d0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; }
+        .app-container { max-width: 500px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #2f3e46; }
+        header h1 { font-size: 24px; letter-spacing: 1px; color: var(--text-main); }
+        header p { font-size: 12px; color: var(--accent-color); text-transform: uppercase; margin-top: 5px; }
+        .section-title { font-size: 14px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 10px; letter-spacing: 0.5px; }
+        .control-group { background: var(--card-color); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2c3540; }
+        label { display: block; font-size: 12px; margin-bottom: 6px; color: #a4b0be; }
+        select, input, textarea { width: 100%; background: #151c24; border: 1px solid #34495e; padding: 12px; border-radius: 8px; color: white; font-size: 14px; margin-bottom: 12px; }
+        select:focus, input:focus { border-color: var(--accent-color); outline: none; }
+        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+        .btn:active { background: #b38f4b; }
+        .output-box { background: #11161d; border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px; margin-top: 15px; display: none; }
+        .output-box h3 { font-size: 14px; margin-bottom: 8px; color: var(--accent-color); }
+        .prompt-text { font-size: 13px; line-height: 1.5; color: #dcdde1; background: #090d12; padding: 10px; border-radius: 6px; border: 1px dashed #2c3540; word-break: break-word; white-space: pre-wrap; }
+        .copy-btn { background: #2f3542; color: white; font-size: 11px; padding: 4px 8px; border: none; border-radius: 4px; float: right; margin-top: -30px; margin-right: 5px; cursor: pointer; }
+        .scene-block { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1f2833; }
+        .scene-time { font-weight: bold; color: var(--accent-color); font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>ASTRA VIDEO WORKBENCH</h1>
+        <p>Zero-Cost Mobile Asset Generator</p>
+    </header>
+
+    <div class="control-group">
+        <h2 class="section-title">1. Visual Theme Settings</h2>
+        
+        <label for="themeSelect">Cinematic Atmosphere Style</label>
+        <select id="themeSelect">
+            <option value="Dark Gothic Luxury Lounge">Dark Gothic Luxury Lounge</option>
+            <option value="Neon Cyberpunk Sanctum">Neon Cyberpunk Sanctum</option>
+            <option value="High-Contrast Retro Rebel Grid">High-Contrast Retro Rebel Grid</option>
+            <option value="Atmospheric Cinematic Noir">Atmospheric Cinematic Noir</option>
+        </select>
+
+        <label for="accentSelect">Lighting & Highlight Accents</label>
+        <select id="accentSelect">
+            <option value="Deep red velvet shadows with volumetric gold candelabras">Deep Red & Gold Cast</option>
+            <option value="Electric ultraviolet illumination over polished dark chrome textures">Electric Ultraviolet & Chrome</option>
+            <option value="Moody smoke layers pierced by intense white backlight glare">High-Contrast Backlit Smoke</option>
+        </select>
+
+        <label for="pacingSelect">Audio Rhythm Sync Pacing</label>
+        <select id="pacingSelect">
+            <option value="90 BPM Heavy Driving Industrial Bass Drum Beat Drops">90 BPM Heavy Drum Syncs</option>
+            <option value="140 BPM Fast-Paced Rebel Trap Rhythm Visual Hard Cuts">140 BPM Aggressive Trap Cuts</option>
+            <option value="75 BPM Slow Motion Ethereal Ambient Melancholy Transitions">75 BPM Atmospheric Slow-Mo</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <h2 class="section-title">2. Metadata & Text Overlays</h2>
+        <label for="projName">Project Output Identifier</label>
+        <input type="text" id="projName" value="Teaser_Promo_V1">
+        
+        <button class="btn" onclick="generateProductionPackage()">Compile Engine Prompts</button>
+    </div>
+
+    <div id="outputContainer" class="output-box">
+        <h2 class="section-title" style="margin-bottom: 15px;">🚀 Production Ready Assets</h2>
+        
+        <div class="scene-block">
+            <h3>Clean Engine Metadata</h3>
+            <div class="prompt-text" id="metaOutput"></div>
+        </div>
+
+        <div class="scene-block">
+            <h3>Scene 1 Prompt (0s - 5s)</h3>
+            <button class="copy-btn" onclick="copyText('prompt1')">Copy</button>
+            <div class="prompt-text" id="prompt1"></div>
+        </div>
+
+        <div class="scene-block">
+            <h3>Scene 2 Prompt (5s - 10s)</h3>
+            <button class="copy-btn" onclick="copyText('prompt2')">Copy</button>
+            <div class="prompt-text" id="prompt2"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateProductionPackage() {
+        const theme = document.getElementById('themeSelect').value;
+        const accents = document.getElementById('accentSelect').value;
+        const pacing = document.getElementById('pacingSelect').value;
+        const proj = document.getElementById('projName').value;
+
+        // Generate Structured Clean File Metadata Configuration
+        document.getElementById('metaOutput').innerText = JSON.stringify({
+            project: proj,
+            tags: [theme.split(' ')[0].toLowerCase(), "cinematic", "asset"],
+            audio_pacing_bpm: pacing.split(' ')[0]
+        }, null, 2);
+
+        // Compute Optimized High-End Cinematic Copy Strings for External AI Video Generators
+        document.getElementById('prompt1').innerText = `Cinematic photorealistic opening shot, 8k resolution, ${theme} aesthetic. ${accents}. Camera tracks forward in extreme slow-motion, showcasing micro-textures. Visual edits hit dynamically to a ${pacing}.`;
+        document.getElementById('prompt2').innerText = `Dynamic alternative angle, medium close-up shot, ${theme} mood configuration. Dramatic shadow shifts as camera lenses pan smoothly. High luxury rendering style optimized for rendering engines, matching ${pacing}.`;
+
+        document.getElementById('outputContainer').style.display = 'block';
+        document.getElementById('outputContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyText(id) {
+        const text = document.getElementById(id).innerText;
+        navigator.clipboard.writeText(text);
+        alert("Prompt copied to phone clipboard! Paste straight into your free video engine.");
+    }
+</script>
+
+</body>
+</html>
+
+
