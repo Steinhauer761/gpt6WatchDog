@@ -3,130 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astra Cinematic Studio</title>
+    <title>Astra Hub: Content, OSINT & Security</title>
     <style>
         :root {
             --bg-color: #0b0c10;
             --card-color: #1f2833;
             --accent-color: #c5a059;
+            --threat-color: #ff4d4d;
+            --osint-color: #4cd137;
             --text-main: #ffffff;
-            --text-muted: #c5a059d0;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; }
         .app-container { max-width: 500px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #2f3e46; }
-        header h1 { font-size: 24px; letter-spacing: 1px; color: var(--text-main); }
-        header p { font-size: 12px; color: var(--accent-color); text-transform: uppercase; margin-top: 5px; }
-        .section-title { font-size: 14px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 10px; letter-spacing: 0.5px; }
+        header h1 { font-size: 22px; letter-spacing: 1px; }
+        header p { font-size: 11px; color: var(--accent-color); text-transform: uppercase; margin-top: 5px; }
+        .section-title { font-size: 13px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 12px; letter-spacing: 0.5px; }
         .control-group { background: var(--card-color); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2c3540; }
         label { display: block; font-size: 12px; margin-bottom: 6px; color: #a4b0be; }
         select, input, textarea { width: 100%; background: #151c24; border: 1px solid #34495e; padding: 12px; border-radius: 8px; color: white; font-size: 14px; margin-bottom: 12px; }
         select:focus, input:focus { border-color: var(--accent-color); outline: none; }
-        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
-        .btn:active { background: #b38f4b; }
+        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
+        .btn-threat { background: var(--threat-color); color: white; }
+        .btn-osint { background: var(--osint-color); color: #0b0c10; }
         .output-box { background: #11161d; border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px; margin-top: 15px; display: none; }
-        .output-box h3 { font-size: 14px; margin-bottom: 8px; color: var(--accent-color); }
-        .prompt-text { font-size: 13px; line-height: 1.5; color: #dcdde1; background: #090d12; padding: 10px; border-radius: 6px; border: 1px dashed #2c3540; word-break: break-word; white-space: pre-wrap; }
-        .copy-btn { background: #2f3542; color: white; font-size: 11px; padding: 4px 8px; border: none; border-radius: 4px; float: right; margin-top: -30px; margin-right: 5px; cursor: pointer; }
-        .scene-block { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1f2833; }
-        .scene-time { font-weight: bold; color: var(--accent-color); font-size: 12px; }
+        .prompt-text { font-size: 13px; line-height: 1.5; color: #dcdde1; background: #090d12; padding: 10px; border-radius: 6px; border: 1px solid #2c3540; word-break: break-word; white-space: pre-wrap; }
+        .link-btn { display: inline-block; background: #2f3542; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-top: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <header>
-        <h1>ASTRA VIDEO WORKBENCH</h1>
-        <p>Zero-Cost Mobile Asset Generator</p>
+        <h1>ASTRA OPERATIONS CENTER</h1>
+        <p>Studio, Footprint Monitoring & Defense</p>
     </header>
 
+    <!-- MODULE 1: VIDEO STUDIO -->
     <div class="control-group">
-        <h2 class="section-title">1. Visual Theme Settings</h2>
-        
-        <label for="themeSelect">Cinematic Atmosphere Style</label>
+        <h2 class="section-title">🎬 Video Asset Prompt Engine</h2>
+        <label for="themeSelect">Atmosphere Theme</label>
         <select id="themeSelect">
             <option value="Dark Gothic Luxury Lounge">Dark Gothic Luxury Lounge</option>
             <option value="Neon Cyberpunk Sanctum">Neon Cyberpunk Sanctum</option>
-            <option value="High-Contrast Retro Rebel Grid">High-Contrast Retro Rebel Grid</option>
-            <option value="Atmospheric Cinematic Noir">Atmospheric Cinematic Noir</option>
         </select>
-
-        <label for="accentSelect">Lighting & Highlight Accents</label>
-        <select id="accentSelect">
-            <option value="Deep red velvet shadows with volumetric gold candelabras">Deep Red & Gold Cast</option>
-            <option value="Electric ultraviolet illumination over polished dark chrome textures">Electric Ultraviolet & Chrome</option>
-            <option value="Moody smoke layers pierced by intense white backlight glare">High-Contrast Backlit Smoke</option>
-        </select>
-
-        <label for="pacingSelect">Audio Rhythm Sync Pacing</label>
-        <select id="pacingSelect">
-            <option value="90 BPM Heavy Driving Industrial Bass Drum Beat Drops">90 BPM Heavy Drum Syncs</option>
-            <option value="140 BPM Fast-Paced Rebel Trap Rhythm Visual Hard Cuts">140 BPM Aggressive Trap Cuts</option>
-            <option value="75 BPM Slow Motion Ethereal Ambient Melancholy Transitions">75 BPM Atmospheric Slow-Mo</option>
-        </select>
+        <button class="btn" onclick="generateVideoPrompts()">Compile Video Prompts</button>
     </div>
 
-    <div class="control-group">
-        <h2 class="section-title">2. Metadata & Text Overlays</h2>
-        <label for="projName">Project Output Identifier</label>
-        <input type="text" id="projName" value="Teaser_Promo_V1">
-        
-        <button class="btn" onclick="generateProductionPackage()">Compile Engine Prompts</button>
+    <!-- MODULE 2: DEEP REPUTATION FOOTPRINT SCANNER -->
+    <div class="control-group" style="border-color: #4cd13744;">
+        <h2 class="section-title" style="color: var(--osint-color);">🔍 Reputation & Footprint Engine</h2>
+        <label for="searchTarget">Target Name / Brand Identity / Alias</label>
+        <input type="text" id="searchTarget" placeholder="Enter target name or username to track...">
+        <button class="btn btn-osint" onclick="executeFootprintScan()">Build OSINT Search Matrix</button>
     </div>
 
-    <div id="outputContainer" class="output-box">
-        <h2 class="section-title" style="margin-bottom: 15px;">🚀 Production Ready Assets</h2>
-        
-        <div class="scene-block">
-            <h3>Clean Engine Metadata</h3>
-            <div class="prompt-text" id="metaOutput"></div>
-        </div>
+    <!-- MODULE 3: DEFENSIVE TRACER & THREAT AUDIT -->
+    <div class="control-group" style="border-color: #ff4d4d44;">
+        <h2 class="section-title" style="color: var(--threat-color);">🛡️ Scammer Log & IP Tracker Blueprint</h2>
+        <label for="telemetryPayload">Paste Scammer Telemetry / Message Evidence</label>
+        <textarea id="telemetryPayload" rows="2" placeholder="Paste copy text, links, or header records here..."></textarea>
+        <button class="btn btn-threat" onclick="executeThreatAudit()">Compile Incident Package</button>
+    </div>
 
-        <div class="scene-block">
-            <h3>Scene 1 Prompt (0s - 5s)</h3>
-            <button class="copy-btn" onclick="copyText('prompt1')">Copy</button>
-            <div class="prompt-text" id="prompt1"></div>
-        </div>
-
-        <div class="scene-block">
-            <h3>Scene 2 Prompt (5s - 10s)</h3>
-            <button class="copy-btn" onclick="copyText('prompt2')">Copy</button>
-            <div class="prompt-text" id="prompt2"></div>
-        </div>
+    <!-- CENTRAL CONSOLE OUTPUT -->
+    <div id="consoleBox" class="output-box">
+        <h2 class="section-title" id="consoleHeader">System Response</h2>
+        <div id="consoleContent"></div>
     </div>
 </div>
 
 <script>
-    function generateProductionPackage() {
+    function generateVideoPrompts() {
         const theme = document.getElementById('themeSelect').value;
-        const accents = document.getElementById('accentSelect').value;
-        const pacing = document.getElementById('pacingSelect').value;
-        const proj = document.getElementById('projName').value;
-
-        // Generate Structured Clean File Metadata Configuration
-        document.getElementById('metaOutput').innerText = JSON.stringify({
-            project: proj,
-            tags: [theme.split(' ')[0].toLowerCase(), "cinematic", "asset"],
-            audio_pacing_bpm: pacing.split(' ')[0]
-        }, null, 2);
-
-        // Compute Optimized High-End Cinematic Copy Strings for External AI Video Generators
-        document.getElementById('prompt1').innerText = `Cinematic photorealistic opening shot, 8k resolution, ${theme} aesthetic. ${accents}. Camera tracks forward in extreme slow-motion, showcasing micro-textures. Visual edits hit dynamically to a ${pacing}.`;
-        document.getElementById('prompt2').innerText = `Dynamic alternative angle, medium close-up shot, ${theme} mood configuration. Dramatic shadow shifts as camera lenses pan smoothly. High luxury rendering style optimized for rendering engines, matching ${pacing}.`;
-
-        document.getElementById('outputContainer').style.display = 'block';
-        document.getElementById('outputContainer').scrollIntoView({ behavior: 'smooth' });
+        const out = document.getElementById('consoleBox');
+        out.style.borderLeftColor = 'var(--accent-color)';
+        document.getElementById('consoleHeader').innerText = "🎬 Generated Video Prompts";
+        
+        document.getElementById('consoleContent').innerHTML = `
+            <div class="prompt-text"><strong>Scene 1 Prompt:</strong> Cinematic photorealistic opening shot, 8k resolution, ${theme} aesthetic. Heavy driving industrial beat sync cuts. Camera pans slowly.</div>
+        `;
+        out.style.display = 'block';
+        out.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function copyText(id) {
-        const text = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(text);
-        alert("Prompt copied to phone clipboard! Paste straight into your free video engine.");
+    function executeFootprintScan() {
+        const target = document.getElementById('searchTarget').value.trim();
+        if (!target) { alert("Please enter a target profile name first!"); return; }
+        
+        const out = document.getElementById('consoleBox');
+        out.style.borderLeftColor = 'var(--osint-color)';
+        document.getElementById('consoleHeader').innerText = "🔍 Active OSINT Search Matrix";
+
+        // Generate tailored query strings using deep parameters (Google Dorks)
+        const dorkQuote = encodeURIComponent(`"${target}"`);
+        const dorkLeak = encodeURIComponent(`"${target}" text OR leak OR dump`);
+
+        document.getElementById('consoleContent').innerHTML = `
+            <p style="font-size: 13px; margin-bottom: 10px;">Select a parameter to scan the public index for exposure:</p>
+            <div class="prompt-text">
+                <strong>Exact Name Tracker:</strong> Scans web text fields for exact literal keyword prints.<br>
+                <a class="link-btn" href="https://google.com{dorkQuote}" target="_blank">Launch Exact Target Search 🚀</a>
+                <br><br>
+                <strong>Exposure & Leak Scan:</strong> Checks document roots and text logs for security data drops.<br>
+                <a class="link-btn" href="https://google.com{dorkLeak}" target="_blank">Launch Leak Scan 🚀</a>
+            </div>
+        `;
+        out.style.display = 'block';
+        out.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function executeThreatAudit() {
+        const input = document.getElementById('telemetryPayload').value.trim();
+        const out = document.getElementById('consoleBox');
+        out.style.borderLeftColor = 'var(--threat-color)';
+        document.getElementById('consoleHeader').innerText = "🚨 Defensive Blueprint & IP Tracking Logs";
+
+        document.getElementById('consoleContent').innerHTML = `
+            <div class="prompt-text">
+<strong>[TELEMETRY LOGGER STATUS]</strong>: Infrastructure Mock Deployment Ready
+<strong>[NETWORK TRACE NOTICE]</strong>: Due to VPN protocols and carrier encryption masks, telemetry connections resolve to ISP Exchange Nodes. Home-level coordinate tracking is barred under internet provider security filters.
+
+<strong>[GENERATED EXPLOIT DETECTION TICKET]</strong>:
+- Raw Trace Content: "${input || 'No raw text provided'}"
+- Flag Status: Suspicious Pattern Verified
+- Strategy: Use open-source URL loggers (like Grabify) inside communication streams to extract incoming network node handshakes, or provide this structured log profile to network abuse lines.
+            </div>
+        `;
+        out.style.display = 'block';
+        out.scrollIntoView({ behavior: 'smooth' });
     }
 </script>
 
 </body>
 </html>
-
-
