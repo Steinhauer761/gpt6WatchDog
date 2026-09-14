@@ -2,35 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astra Hub: Content, OSINT & Security</title>
+    <link rel="manifest" href="manifest.json">
+    <title>Astra Core: Cyber OSINT & Geo Tracer</title>
     <style>
         :root {
             --bg-color: #0b0c10;
             --card-color: #1f2833;
             --accent-color: #c5a059;
             --threat-color: #ff4d4d;
-            --osint-color: #4cd137;
+            --osint-color: #00d2d3;
+            --trace-color: #f1c40f;
             --text-main: #ffffff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; }
         .app-container { max-width: 500px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #2f3e46; }
-        header h1 { font-size: 22px; letter-spacing: 1px; }
+        header h1 { font-size: 20px; letter-spacing: 1px; }
         header p { font-size: 11px; color: var(--accent-color); text-transform: uppercase; margin-top: 5px; }
         .section-title { font-size: 13px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 12px; letter-spacing: 0.5px; }
         .control-group { background: var(--card-color); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2c3540; }
         label { display: block; font-size: 12px; margin-bottom: 6px; color: #a4b0be; }
         select, input, textarea { width: 100%; background: #151c24; border: 1px solid #34495e; padding: 12px; border-radius: 8px; color: white; font-size: 14px; margin-bottom: 12px; }
         select:focus, input:focus { border-color: var(--accent-color); outline: none; }
-        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
+        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 10px; }
         .btn-threat { background: var(--threat-color); color: white; }
         .btn-osint { background: var(--osint-color); color: #0b0c10; }
+        .btn-trace { background: var(--trace-color); color: #0b0c10; }
         .output-box { background: #11161d; border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px; margin-top: 15px; display: none; }
         .prompt-text { font-size: 13px; line-height: 1.5; color: #dcdde1; background: #090d12; padding: 10px; border-radius: 6px; border: 1px solid #2c3540; word-break: break-word; white-space: pre-wrap; }
-        .link-btn { display: inline-block; background: #2f3542; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-top: 8px; font-weight: bold; }
+        .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .link-btn { display: block; text-align: center; background: #2f3542; color: white; padding: 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; border: 1px solid #3e4452; }
     </style>
 </head>
 <body>
@@ -38,10 +41,10 @@
 <div class="app-container">
     <header>
         <h1>ASTRA OPERATIONS CENTER</h1>
-        <p>Studio, Footprint Monitoring & Defense</p>
+        <p>Studio, Free Country Tracer & OSINT Portal</p>
     </header>
 
-    <!-- MODULE 1: VIDEO STUDIO -->
+    <!-- 1. STUDIO COMPONENT -->
     <div class="control-group">
         <h2 class="section-title">🎬 Video Asset Prompt Engine</h2>
         <label for="themeSelect">Atmosphere Theme</label>
@@ -52,25 +55,25 @@
         <button class="btn" onclick="generateVideoPrompts()">Compile Video Prompts</button>
     </div>
 
-    <!-- MODULE 2: DEEP REPUTATION FOOTPRINT SCANNER -->
-    <div class="control-group" style="border-color: #4cd13744;">
-        <h2 class="section-title" style="color: var(--osint-color);">🔍 Reputation & Footprint Engine</h2>
-        <label for="searchTarget">Target Name / Brand Identity / Alias</label>
-        <input type="text" id="searchTarget" placeholder="Enter target name or username to track...">
-        <button class="btn btn-osint" onclick="executeFootprintScan()">Build OSINT Search Matrix</button>
+    <!-- 2. LIVE COUNTRY GEOLOCATION TRACER -->
+    <div class="control-group" style="border-color: var(--trace-color);">
+        <h2 class="section-title" style="color: var(--trace-color);">🌐 Free Country Origin Tracer</h2>
+        <label for="ipInput">Suspect IP Address</label>
+        <input type="text" id="ipInput" placeholder="Paste IP address here (e.g., 8.8.8.8)...">
+        <button class="btn btn-trace" onclick="traceIPCountry()">Query Country Destination</button>
     </div>
 
-    <!-- MODULE 3: DEFENSIVE TRACER & THREAT AUDIT -->
-    <div class="control-group" style="border-color: #ff4d4d44;">
-        <h2 class="section-title" style="color: var(--threat-color);">🛡️ Scammer Log & IP Tracker Blueprint</h2>
-        <label for="telemetryPayload">Paste Scammer Telemetry / Message Evidence</label>
-        <textarea id="telemetryPayload" rows="2" placeholder="Paste copy text, links, or header records here..."></textarea>
-        <button class="btn btn-threat" onclick="executeThreatAudit()">Compile Incident Package</button>
+    <!-- 3. OSINT DEEP FOOTPRINT SEARCH MATRIX -->
+    <div class="control-group" style="border-color: var(--osint-color);">
+        <h2 class="section-title" style="color: var(--osint-color);">🔍 Footprint Audit (Self & Others)</h2>
+        <label for="investigateInput">Target Profile (Full Name, Handle, or Core Text)</label>
+        <input type="text" id="investigateInput" placeholder="Type a name or alias to clean/verify...">
+        <button class="btn btn-osint" onclick="launchOSINTMatrix()">Compile Deep Search Matrix</button>
     </div>
 
-    <!-- CENTRAL CONSOLE OUTPUT -->
+    <!-- 4. CENTRAL CONSOLE OUTPUT -->
     <div id="consoleBox" class="output-box">
-        <h2 class="section-title" id="consoleHeader">System Response</h2>
+        <h2 class="section-title" id="consoleHeader">Console Output</h2>
         <div id="consoleContent"></div>
     </div>
 </div>
@@ -89,47 +92,61 @@
         out.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function executeFootprintScan() {
-        const target = document.getElementById('searchTarget').value.trim();
-        if (!target) { alert("Please enter a target profile name first!"); return; }
-        
+    async function traceIPCountry() {
+        const ip = document.getElementById('ipInput').value.trim();
+        if(!ip) { alert("Please input an IP address to trace!"); return; }
+
         const out = document.getElementById('consoleBox');
-        out.style.borderLeftColor = 'var(--osint-color)';
-        document.getElementById('consoleHeader').innerText = "🔍 Active OSINT Search Matrix";
-
-        // Generate tailored query strings using deep parameters (Google Dorks)
-        const dorkQuote = encodeURIComponent(`"${target}"`);
-        const dorkLeak = encodeURIComponent(`"${target}" text OR leak OR dump`);
-
-        document.getElementById('consoleContent').innerHTML = `
-            <p style="font-size: 13px; margin-bottom: 10px;">Select a parameter to scan the public index for exposure:</p>
-            <div class="prompt-text">
-                <strong>Exact Name Tracker:</strong> Scans web text fields for exact literal keyword prints.<br>
-                <a class="link-btn" href="https://google.com{dorkQuote}" target="_blank">Launch Exact Target Search 🚀</a>
-                <br><br>
-                <strong>Exposure & Leak Scan:</strong> Checks document roots and text logs for security data drops.<br>
-                <a class="link-btn" href="https://google.com{dorkLeak}" target="_blank">Launch Leak Scan 🚀</a>
-            </div>
-        `;
+        out.style.borderLeftColor = 'var(--trace-color)';
+        document.getElementById('consoleHeader').innerText = "🌐 IP Geolocation Network Analysis";
+        document.getElementById('consoleContent').innerHTML = "<p>Analyzing carrier data packages...</p>";
         out.style.display = 'block';
+
+        try {
+            const response = await fetch(`https://ipinfo.io{ip}/json`);
+            const data = await response.json();
+
+            if(data.error || !data.country) {
+                document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Trace Routing Failed: Verify that the IP string format is valid.</div>`;
+                return;
+            }
+
+            document.getElementById('consoleContent').innerHTML = `
+                <div class="prompt-text">
+<strong>[ROUTING STATUS]</strong>: HANDSHAKE SUCCESSFUL
+<strong>[RESOLVED COUNTRY]</strong>: ${data.country}
+<strong>[REGIONAL ZONE]</strong>: ${data.region || 'UNMAPPED'}
+<strong>[NETWORK OWNER (ASN)]</strong>: ${data.org || 'UNTRACKED'}
+
+<em>Security Note: If this flags a hosting node center (like Amazon or DigitalOcean), the scammer is utilizing an active proxy/VPN network layer.</em>
+                </div>
+            `;
+        } catch (err) {
+            document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Connection Timeout: Network bridge closed.</div>`;
+        }
         out.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function executeThreatAudit() {
-        const input = document.getElementById('telemetryPayload').value.trim();
+    function launchOSINTMatrix() {
+        const query = document.getElementById('investigateInput').value.trim();
+        if(!query) { alert("Please input a footprint verification target name!"); return; }
+
         const out = document.getElementById('consoleBox');
-        out.style.borderLeftColor = 'var(--threat-color)';
-        document.getElementById('consoleHeader').innerText = "🚨 Defensive Blueprint & IP Tracking Logs";
+        out.style.borderLeftColor = 'var(--osint-color)';
+        document.getElementById('consoleHeader').innerText = "🔎 Deep Footprint Exploration Grid";
+
+        const encodedQuote = encodeURIComponent(`"${query}"`);
+        const dorkPublicFiles = encodeURIComponent(`"${query}" filetype:pdf OR filetype:doc`);
+        const dorkSocialLeaks = encodeURIComponent(`site:reddit.com OR site:twitter.com "${query}" leak`);
 
         document.getElementById('consoleContent').innerHTML = `
-            <div class="prompt-text">
-<strong>[TELEMETRY LOGGER STATUS]</strong>: Infrastructure Mock Deployment Ready
-<strong>[NETWORK TRACE NOTICE]</strong>: Due to VPN protocols and carrier encryption masks, telemetry connections resolve to ISP Exchange Nodes. Home-level coordinate tracking is barred under internet provider security filters.
-
-<strong>[GENERATED EXPLOIT DETECTION TICKET]</strong>:
-- Raw Trace Content: "${input || 'No raw text provided'}"
-- Flag Status: Suspicious Pattern Verified
-- Strategy: Use open-source URL loggers (like Grabify) inside communication streams to extract incoming network node handshakes, or provide this structured log profile to network abuse lines.
+            <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">Active Parameters for: <strong>${query}</strong>. Select an orchestration pathway to crawl index engines for files, mentions, or exposed links:</p>
+            
+            <div class="link-grid">
+                <a class="link-btn" href="https://google.com{encodedQuote}" target="_blank">Launch Exact Target Search 🚀</a>
+                <a class="link-btn" href="https://google.com{dorkPublicFiles}" target="_blank">Exposed Document Index</a>
+                <a class="link-btn" href="https://google.com{dorkSocialLeaks}" target="_blank">Launch Leak Scan 🚀</a>
+                <a class="link-btn" href="https://osintframework.com" target="_blank">OSINT Global Matrix</a>
             </div>
         `;
         out.style.display = 'block';
