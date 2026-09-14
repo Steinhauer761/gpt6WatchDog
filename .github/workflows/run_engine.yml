@@ -1,0 +1,29 @@
+name: Run Orchestrator Engine
+
+on:
+  workflow_dispatch: # This adds a manual "Play" button to your GitHub interface
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Project Libraries
+        run: |
+          pip install openai supabase
+
+      - name: Execute Orchestrator
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python orchestrator.py
+
+
