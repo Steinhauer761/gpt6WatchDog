@@ -135,7 +135,8 @@
         out.style.borderLeftColor = 'var(--osint-color)';
         document.getElementById('consoleHeader').innerText = "🔎 Deep Footprint Exploration Grid";
 
-        const encodedQuote = encodeURIComponent(`"${query}"`);
+        // Fixed structural syntax parameters for standard search parameters
+        const dorkQuote = encodeURIComponent(`"${query}"`);
         const dorkPublicFiles = encodeURIComponent(`"${query}" filetype:pdf OR filetype:doc`);
         const dorkSocialLeaks = encodeURIComponent(`site:reddit.com OR site:twitter.com "${query}" leak`);
 
@@ -143,7 +144,7 @@
             <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">Active Parameters for: <strong>${query}</strong>. Select an orchestration pathway to crawl index engines for files, mentions, or exposed links:</p>
             
             <div class="link-grid">
-                <a class="link-btn" href="https://google.com{encodedQuote}" target="_blank">Launch Exact Target Search 🚀</a>
+                <a class="link-btn" href="https://google.com{dorkQuote}" target="_blank">Launch Exact Target Search 🚀</a>
                 <a class="link-btn" href="https://google.com{dorkPublicFiles}" target="_blank">Exposed Document Index</a>
                 <a class="link-btn" href="https://google.com{dorkSocialLeaks}" target="_blank">Launch Leak Scan 🚀</a>
                 <a class="link-btn" href="https://osintframework.com" target="_blank">OSINT Global Matrix</a>
