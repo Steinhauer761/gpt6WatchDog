@@ -1,48 +1,169 @@
 {
-  "version": 1,
+  "version": 2,
   "policy": {
     "mode": "defensive-authorized-only",
     "allow_hack_back": false,
+    "allow_live_satellite_commanding": false,
+    "allow_rf_transmit_to_live_satellites": false,
     "default_timeout_seconds": 120,
     "default_max_concurrency": 2,
-    "notes": "External tools must be pinned to an exact upstream repository and reviewed before activation. Heavy tools run in an isolated worker, never directly in the browser."
+    "notes": "External tools are pinned to verified upstream repositories before activation. Active testing is restricted to systems the user owns or is explicitly authorized to assess. Satellite features are passive reception/analysis or simulator/lab-only."
   },
   "adapters": [
     {
-      "id": "username-osint",
-      "name": "Username / Identity OSINT",
-      "status": "awaiting-upstream-verification",
-      "runtime": "worker",
-      "accepted_targets": ["username", "alias"],
-      "purpose": "Public-account discovery for self-audit or authorized investigation",
-      "repository": null
+      "id": "privacy-opsec",
+      "category": "privacy",
+      "name": "Privacy / OpSec Self-Audit",
+      "status": "implemented-ui",
+      "runtime": "browser-local",
+      "accepted_targets": ["own-device", "own-browser", "own-file", "own-url"],
+      "purpose": "Visible-IP/VPN checks, browser fingerprint awareness, WebRTC checks, tracking-link cleanup, metadata stripping and identity compartment guidance"
     },
     {
-      "id": "email-exposure",
-      "name": "Email / Account Exposure",
-      "status": "awaiting-upstream-verification",
-      "runtime": "worker",
-      "accepted_targets": ["email"],
-      "purpose": "Public account-presence and exposure checks",
-      "repository": null
+      "id": "impersonation-defense",
+      "category": "social-defense",
+      "name": "Impersonation Defense Case Builder",
+      "status": "implemented-ui",
+      "runtime": "browser-local",
+      "accepted_targets": ["public-profile-url", "username", "public-profile-photo", "public-bio"],
+      "purpose": "Preserve public evidence, compare profile images locally, document inconsistencies and generate a reporting packet without doxxing"
     },
     {
-      "id": "domain-intel",
-      "name": "Domain / Infrastructure Intelligence",
-      "status": "awaiting-upstream-verification",
-      "runtime": "worker",
-      "accepted_targets": ["domain", "ip"],
-      "purpose": "DNS, RDAP, certificate, ASN and public attack-surface enrichment",
-      "repository": null
-    },
-    {
-      "id": "crawler",
-      "name": "Authorized Crawler / Scanner",
-      "status": "awaiting-upstream-verification",
+      "id": "sherlock",
+      "category": "social-osint",
+      "name": "Sherlock Username Discovery",
+      "status": "verified-upstream-staged",
       "runtime": "isolated-worker",
-      "accepted_targets": ["owned-domain", "authorized-host"],
-      "purpose": "Authorized security scanning with rate limits and audit logging",
-      "repository": null
+      "accepted_targets": ["username", "alias"],
+      "purpose": "Find public accounts using the same username across supported sites for self-audit and impersonation investigations",
+      "repository": "sherlock-project/sherlock",
+      "license": "MIT"
+    },
+    {
+      "id": "osiris",
+      "category": "global-osint",
+      "name": "OSIRIS Global Intelligence",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-service",
+      "accepted_targets": ["public-osint-query", "domain", "ip"],
+      "purpose": "Situational awareness, public data layers, DNS/WHOIS/IP/CVE enrichment and map-based OSINT",
+      "repository": "simplifaisoul/osiris",
+      "license": "MIT"
+    },
+    {
+      "id": "shadowbroker",
+      "category": "global-osint",
+      "name": "Shadowbroker Intelligence Dashboard",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-service",
+      "accepted_targets": ["public-osint-query", "public-feed"],
+      "purpose": "Aggregate public aviation, satellite, CCTV, event and intelligence feeds for situational awareness",
+      "repository": "BigBodyCobain/Shadowbroker",
+      "license": "AGPL-3.0"
+    },
+    {
+      "id": "nmap",
+      "category": "authorized-pentest",
+      "name": "Nmap Network Discovery",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-host", "owned-network", "authorized-host", "authorized-network"],
+      "purpose": "Authorized network inventory, port and service discovery",
+      "repository": "nmap/nmap",
+      "authorization_required": true
+    },
+    {
+      "id": "nuclei",
+      "category": "authorized-pentest",
+      "name": "Nuclei Vulnerability Assessment",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-domain", "owned-api", "authorized-domain", "authorized-api"],
+      "purpose": "Template-based vulnerability assessment of authorized applications and infrastructure",
+      "repository": "projectdiscovery/nuclei",
+      "license": "MIT",
+      "authorization_required": true
+    },
+    {
+      "id": "zap",
+      "category": "authorized-pentest",
+      "name": "ZAP Web Application Testing",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-webapp", "authorized-webapp"],
+      "purpose": "Authorized web application security testing and DAST",
+      "repository": "zaproxy/zaproxy",
+      "license": "Apache-2.0",
+      "authorization_required": true
+    },
+    {
+      "id": "crowdsec",
+      "category": "defense",
+      "name": "CrowdSec Detection / Blocking",
+      "status": "verified-upstream-staged",
+      "runtime": "defense-worker",
+      "accepted_targets": ["owned-server-logs", "owned-infrastructure"],
+      "purpose": "Detect abusive behavior and feed block/remediation decisions for owned infrastructure",
+      "repository": "crowdsecurity/crowdsec",
+      "license": "MIT"
+    },
+    {
+      "id": "suricata",
+      "category": "defense",
+      "name": "Suricata IDS / IPS",
+      "status": "verified-upstream-staged",
+      "runtime": "defense-worker",
+      "accepted_targets": ["owned-network-traffic"],
+      "purpose": "Intrusion detection, prevention and network-security monitoring on owned networks",
+      "repository": "OISF/suricata",
+      "license": "GPL-2.0"
+    },
+    {
+      "id": "opencanary",
+      "category": "deception-defense",
+      "name": "OpenCanary Honeypot",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-infrastructure"],
+      "purpose": "Decoy services and alerts when scanners or intruders touch resources that legitimate users should not access",
+      "repository": "thinkst/opencanary",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "id": "gr-satellites",
+      "category": "satellite-passive",
+      "name": "gr-satellites Telemetry Decoder",
+      "status": "verified-upstream-staged",
+      "runtime": "sdr-lab-worker",
+      "accepted_targets": ["lawfully-received-amateur-satellite-signal", "recorded-iq-file"],
+      "purpose": "Passive demodulation and decoding of supported amateur-satellite telemetry",
+      "repository": "daniestevez/gr-satellites",
+      "license": "GPL-3.0",
+      "transmit": false
+    },
+    {
+      "id": "satdump",
+      "category": "satellite-passive",
+      "name": "SatDump Satellite Data Processing",
+      "status": "verified-upstream-staged",
+      "runtime": "sdr-lab-worker",
+      "accepted_targets": ["lawfully-received-satellite-signal", "recorded-baseband-file"],
+      "purpose": "Passive satellite signal/data processing and decoding",
+      "repository": "SatDump/SatDump",
+      "license": "GPL-3.0",
+      "transmit": false
+    },
+    {
+      "id": "nos3",
+      "category": "satellite-simulator",
+      "name": "NASA NOS3 Space-System Simulator",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-lab",
+      "accepted_targets": ["simulation", "digital-twin", "lab-protocol-test"],
+      "purpose": "Space-system simulation and safe security experiments against a lab/digital twin rather than live spacecraft",
+      "repository": "nasa/nos3",
+      "authorization_required": false,
+      "live_targeting": false
     }
   ]
 }
