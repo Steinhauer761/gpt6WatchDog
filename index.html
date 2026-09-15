@@ -6,61 +6,118 @@
   <link rel="manifest" href="manifest.json">
   <title>WatchDog Security Console</title>
   <style>
-    :root {
-      --bg:#080b10; --panel:#111821; --panel2:#0d131b; --border:#24303d;
-      --text:#f5f7fa; --muted:#9ba8b6; --gold:#c5a059; --cyan:#1fd5d5;
-      --yellow:#f1c40f; --red:#ff5c5c; --green:#52d273;
+    :root{
+      --bg:#070a0f;--panel:#111821;--panel2:#0c1219;--border:#24303d;
+      --text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5;
+      --yellow:#f1c40f;--red:#ff5c5c;--green:#52d273;--blue:#5aa7ff;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 50% 0,#121c28 0,#080b10 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:18px;min-height:100vh}
-    .app{max-width:760px;margin:0 auto}
-    header{padding:12px 0 20px;border-bottom:1px solid var(--border);margin-bottom:18px}
-    h1{font-size:22px;letter-spacing:.08em;margin:0 0 6px}.sub{color:var(--muted);font-size:12px}
-    .status{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.chip{font-size:11px;padding:6px 9px;border:1px solid var(--border);border-radius:999px;color:var(--muted);background:#0b1118}.chip.ok{color:var(--green)}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px}@media(min-width:700px){.grid.two{grid-template-columns:1fr 1fr}}
-    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:14px;padding:15px}
-    .card h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at 50% 0,#14202e 0,#070a0f 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    .app{max-width:980px;margin:0 auto;padding:16px}
+    header{padding:8px 0 14px;border-bottom:1px solid var(--border)}
+    h1{font-size:22px;letter-spacing:.08em;margin:0 0 6px}.sub{color:var(--muted);font-size:12px;line-height:1.5}
+    .status{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.chip{font-size:10px;padding:6px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);background:#0b1118}.chip.ok{color:var(--green)}
+    .topbar{position:sticky;top:0;z-index:10;padding:10px 0;background:linear-gradient(180deg,rgba(7,10,15,.98),rgba(7,10,15,.90));backdrop-filter:blur(8px)}
+    .search-tools{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:9px}@media(min-width:700px){.search-tools{grid-template-columns:1fr auto}}
+    .category-nav{display:flex;gap:7px;overflow:auto;padding-bottom:5px;scrollbar-width:thin}
+    .category-nav button{width:auto;min-width:max-content;padding:9px 11px;margin:0;background:#101923;color:#cbd5df;border:1px solid var(--border);font-size:11px;border-radius:999px}
+    .category-nav button.active{background:var(--gold);color:#080b10;border-color:var(--gold)}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:14px;padding:15px;margin-top:14px}
+    .card[hidden]{display:none!important}
+    .card h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:0 0 5px}
+    .card .desc{font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px}
     label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-    input,textarea,select{width:100%;background:#091019;border:1px solid #314052;color:white;border-radius:9px;padding:11px;font-size:14px;margin-bottom:10px}textarea{min-height:125px;resize:vertical}
+    input,textarea,select{width:100%;background:#091019;border:1px solid #314052;color:white;border-radius:9px;padding:11px;font-size:14px;margin-bottom:10px}
+    textarea{min-height:120px;resize:vertical}
     button,.link{display:inline-flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;margin-top:4px;background:var(--gold);color:#090c10}
-    button.secondary{background:#223040;color:white;border:1px solid #394c61}.danger{background:var(--red)!important;color:white!important}.cyan{background:var(--cyan)!important;color:#071011!important}.yellow{background:var(--yellow)!important;color:#111!important}
+    button.secondary,.link.secondary{background:#223040;color:white;border:1px solid #394c61}.danger{background:var(--red)!important;color:white!important}.cyan{background:var(--cyan)!important;color:#071011!important}.yellow{background:var(--yellow)!important;color:#111!important}.blue{background:var(--blue)!important;color:#071011!important}
     .output{display:none;margin-top:12px;background:#070b10;border-left:4px solid var(--gold);padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
-    .tool-list{display:grid;gap:8px}.tool{padding:10px;border:1px solid var(--border);border-radius:9px;background:#0a1017}.tool strong{display:block;font-size:13px}.tool small{color:var(--muted);line-height:1.45}.badge{float:right;font-size:10px;border:1px solid #3a4d62;border-radius:999px;padding:3px 6px;color:var(--muted)}
+    .output.html{white-space:normal;font-family:inherit}.output.html .link{margin-top:7px}
+    .tool-list{display:grid;gap:8px}.tool{padding:10px;border:1px solid var(--border);border-radius:9px;background:#0a1017}.tool strong{display:block;font-size:13px;padding-right:80px}.tool small{color:var(--muted);line-height:1.45}.badge{float:right;font-size:9px;border:1px solid #3a4d62;border-radius:999px;padding:3px 6px;color:var(--muted)}
     .note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:8px}.risk-low{color:var(--green)}.risk-medium{color:var(--yellow)}.risk-high{color:var(--red)}
+    .mini{padding:11px;border:1px solid var(--border);border-radius:10px;background:#0a1118}.mini h3{font-size:12px;margin:0 0 5px;color:#e7edf3}.mini p{font-size:11px;color:var(--muted);margin:0;line-height:1.4}
+    .category-title{margin:18px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
   </style>
 </head>
 <body>
 <div class="app">
   <header>
     <h1>WATCHDOG SECURITY CONSOLE</h1>
-    <div class="sub">Defensive OSINT, incident triage, evidence processing and authorized security tooling</div>
-    <div class="status"><span class="chip ok">LOCAL DECODER READY</span><span class="chip">EXTERNAL ADAPTERS: STAGED</span><span class="chip">NO HACK-BACK</span></div>
+    <div class="sub">Defensive OSINT, incident triage, authorized security testing, dark-web research, hardware security and evidence handling.</div>
+    <div class="status">
+      <span class="chip ok">LOCAL DECODER READY</span>
+      <span class="chip">EXTERNAL ADAPTERS: STAGED</span>
+      <span class="chip">ACTIVE TESTS: AUTHORIZED TARGETS ONLY</span>
+      <span class="chip">NO HACK-BACK</span>
+    </div>
   </header>
 
-  <div class="grid two">
-    <section class="card">
-      <h2>Incident Console</h2>
-      <label for="incidentType">Indicator type</label>
-      <select id="incidentType"><option>Suspicious message</option><option>URL / domain</option><option>IP address</option><option>Email / header</option><option>Username / alias</option><option>Other evidence</option></select>
-      <label for="incidentInput">Paste evidence or indicator</label>
-      <textarea id="incidentInput" placeholder="Paste the suspicious message, URL, IP, header, username, or other text here..."></textarea>
-      <button class="cyan" id="analyzeBtn">Analyze Locally</button>
-      <button class="secondary" id="downloadBtn">Download Evidence Report</button>
-      <div class="note">Local analysis does not upload the pasted evidence to Browserling or another decoder site.</div>
-      <div id="incidentOutput" class="output"></div>
-    </section>
-
-    <section class="card">
-      <h2>Network Trace</h2>
-      <label for="ipInput">IPv4 / IPv6 address</label>
-      <input id="ipInput" placeholder="8.8.8.8">
-      <button class="yellow" id="traceBtn">Query Network Exit Point</button>
-      <div class="note">IP results describe the apparent network exit point. VPNs, proxies, Tor, mobile carriers and compromised hosts can make this different from a person's location.</div>
-      <div id="traceOutput" class="output"></div>
-    </section>
+  <div class="topbar">
+    <div class="search-tools">
+      <input id="toolFilter" placeholder="Search WatchDog tools: username, RFID, CVE, Tor, Wi-Fi, satellite..." style="margin:0">
+      <button id="clearFilter" class="secondary" style="width:auto;margin:0">Clear</button>
+    </div>
+    <nav class="category-nav" id="categoryNav">
+      <button class="active" data-cat="all">All</button>
+      <button data-cat="recon">Recon / People</button>
+      <button data-cat="incident">Incidents</button>
+      <button data-cat="network">Network</button>
+      <button data-cat="defense">Defense</button>
+      <button data-cat="pentest">Pen Test</button>
+      <button data-cat="darkweb">Dark Web</button>
+      <button data-cat="hardware">Hardware Lab</button>
+      <button data-cat="satellite">Satellite / RF</button>
+      <button data-cat="evidence">Evidence</button>
+      <button data-cat="privacy">Privacy</button>
+      <button data-cat="tools">Toolbox</button>
+    </nav>
   </div>
 
-  <section class="card" style="margin-top:14px">
+  <section class="card" data-category="recon" data-keywords="username people alias name email domain sherlock social osint public profiles">
+    <h2>Username / People OSINT</h2>
+    <div class="desc">Search public information connected to a username, alias, name, email or domain. Results are leads, not proof that two accounts belong to the same person.</div>
+    <div class="grid two">
+      <div>
+        <label for="personType">Search type</label>
+        <select id="personType"><option value="username">Username / handle</option><option value="alias">Alias</option><option value="name">Full name</option><option value="email">Email address</option><option value="domain">Domain</option></select>
+        <label for="personInput">Public identifier</label>
+        <input id="personInput" placeholder="username, alias, name, email or domain">
+        <button class="cyan" id="personSearchBtn">Build Public Intelligence Search</button>
+        <button class="secondary" id="sherlockJobBtn">Prepare Sherlock Username Job</button>
+      </div>
+      <div>
+        <div class="mini"><h3>What this can find</h3><p>Public profiles, reused usernames, indexed documents, social mentions, public code references, domain context and Tor-index pivots.</p></div>
+        <div class="mini" style="margin-top:8px"><h3>What it does not do</h3><p>No private account access, login bypass, credential theft, private-address databases or hidden personal records.</p></div>
+      </div>
+    </div>
+    <div id="personOutput" class="output html"></div>
+  </section>
+
+  <section class="card" data-category="recon" data-keywords="footprint google documents social tor ahmia public search osint">
+    <h2>Footprint Audit</h2>
+    <div class="desc">Build broader public-source pivots for an identifier you are researching.</div>
+    <label for="queryInput">Name, username, email, domain or alias</label>
+    <input id="queryInput" placeholder="Enter a public identifier">
+    <button class="cyan" id="matrixBtn">Build Public Search Matrix</button>
+    <div id="matrixOutput" class="output html"></div>
+  </section>
+
+  <section class="card" data-category="incident evidence" data-keywords="incident message url ip email header suspicious evidence triage hash">
+    <h2>Incident Console</h2>
+    <div class="desc">Paste suspicious material and extract indicators locally before using external reputation services.</div>
+    <label for="incidentType">Indicator type</label>
+    <select id="incidentType"><option>Suspicious message</option><option>URL / domain</option><option>IP address</option><option>Email / header</option><option>Username / alias</option><option>Other evidence</option></select>
+    <label for="incidentInput">Paste evidence or indicator</label>
+    <textarea id="incidentInput" placeholder="Paste the suspicious message, URL, IP, header, username, or other text here..."></textarea>
+    <button class="cyan" id="analyzeBtn">Analyze Locally</button>
+    <button class="secondary" id="downloadBtn">Download Evidence Report</button>
+    <div class="note">Local analysis stays in the browser. The heuristic score is only a triage aid.</div>
+    <div id="incidentOutput" class="output"></div>
+  </section>
+
+  <section class="card" data-category="incident evidence" data-keywords="decoder url base64 json sha256 extract indicators threat decoder">
     <h2>Threat Decoder</h2>
     <div class="grid two">
       <div><label for="decodeInput">Encoded / suspicious text</label><textarea id="decodeInput" placeholder="URL-encoded strings, Base64-looking text, JSON, logs, messages..."></textarea></div>
@@ -69,61 +126,130 @@
     <div id="decodeOutput" class="output"></div>
   </section>
 
-  <section class="card" style="margin-top:14px">
-    <h2>Footprint Audit</h2>
-    <label for="queryInput">Name, username, email, domain or alias</label>
-    <input id="queryInput" placeholder="Enter an identifier you are authorized to investigate">
-    <button class="cyan" id="matrixBtn">Build Public Search Matrix</button>
-    <div id="matrixOutput" class="output"></div>
+  <section class="card" data-category="network recon" data-keywords="network trace ip asn geolocation dns whois tls rdap domain">
+    <h2>Network / IP Intelligence</h2>
+    <div class="desc">Network-exit metadata, ASN and routing context. An IP address alone does not identify a person or precise physical location.</div>
+    <label for="ipInput">IPv4 / IPv6 address</label>
+    <input id="ipInput" placeholder="8.8.8.8">
+    <button class="yellow" id="traceBtn">Query Network Exit Point</button>
+    <div id="traceOutput" class="output"></div>
   </section>
 
-  <section class="card" style="margin-top:14px">
-    <h2>External Tool Adapters</h2>
+  <section class="card" data-category="defense network" data-keywords="suricata zeek crowdsec ids ips logs blocking honeypot canary defense network monitoring">
+    <h2>Defense / Monitoring</h2>
+    <div class="grid three">
+      <div class="mini"><h3>IDS / IPS</h3><p>Suricata-style network detection and prevention for traffic you control.</p></div>
+      <div class="mini"><h3>Network telemetry</h3><p>Zeek-style protocol logs and event timelines from owned network captures.</p></div>
+      <div class="mini"><h3>Abuse containment</h3><p>CrowdSec-style detection, block decisions and rate-limit actions for owned infrastructure.</p></div>
+      <div class="mini"><h3>Honeypots</h3><p>OpenCanary/Cowrie decoys that alert when someone touches resources legitimate users should not need.</p></div>
+      <div class="mini"><h3>Canary tokens</h3><p>Tripwire URLs, documents or DNS names that generate alerts when used.</p></div>
+      <div class="mini"><h3>Evidence pipeline</h3><p>Hash, timestamp and export indicators before remediation or reporting.</p></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="pentest" data-keywords="nmap nuclei zap amass subfinder httpx naabu katana vulnerability scan cve authorized pentest">
+    <h2>Authorized Pen Test</h2>
+    <div class="desc">Active testing belongs on systems you own or have explicit permission to assess. WatchDog should require target authorization before running these adapters.</div>
     <div class="tool-list">
-      <div class="tool"><span class="badge">PENDING VERIFY</span><strong>Username / identity discovery</strong><small>Sherlock-style and related OSINT adapters. Exact upstream owner/repo will be pinned before installation.</small></div>
-      <div class="tool"><span class="badge">PENDING VERIFY</span><strong>Email / account exposure</strong><small>Email-account discovery and breach-source adapters, restricted to lawful self-audit or authorized investigations.</small></div>
-      <div class="tool"><span class="badge">PENDING VERIFY</span><strong>Domain / infrastructure intelligence</strong><small>DNS, RDAP, certificates, ASN and public attack-surface enrichment.</small></div>
-      <div class="tool"><span class="badge">WORKER REQUIRED</span><strong>Heavy scanners / crawlers</strong><small>Run in an isolated Linux worker rather than inside the browser or Vercel frontend.</small></div>
+      <div class="tool"><span class="badge">AUTH REQUIRED</span><strong>Attack Surface</strong><small>Amass, Subfinder and certificate/DNS discovery for authorized domains.</small></div>
+      <div class="tool"><span class="badge">AUTH REQUIRED</span><strong>Ports / Services</strong><small>Nmap and Naabu for owned or authorized hosts and networks.</small></div>
+      <div class="tool"><span class="badge">AUTH REQUIRED</span><strong>Web Mapping</strong><small>HTTPX and Katana for responsive services and endpoint discovery.</small></div>
+      <div class="tool"><span class="badge">AUTH REQUIRED</span><strong>Vulnerability Assessment</strong><small>Nuclei, ZAP and CVE correlation against owned or explicitly authorized systems.</small></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="darkweb privacy recon" data-keywords="dark web tor onion ahmia spiderfoot monitor watchlist quarantine download research">
+    <h2>Dark Web / Tor Research</h2>
+    <div class="desc">Passive research and monitoring through an isolated Tor worker. Downloads should be quarantined, hashed and never opened directly on the normal workstation.</div>
+    <div class="grid two">
+      <div class="mini"><h3>Watchlists</h3><p>Monitor your own names, aliases, emails, domains, phone numbers and brand identifiers for new indexed mentions.</p></div>
+      <div class="mini"><h3>Onion research</h3><p>Open public .onion pages through Tor, extract text, links, hashes, domains, emails and wallet addresses.</p></div>
+      <div class="mini"><h3>Quarantine</h3><p>Files pulled for research stay isolated until hashed and analyzed.</p></div>
+      <div class="mini"><h3>Correlation</h3><p>Feed indicators into incident cases and threat-intelligence enrichment.</p></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="hardware" data-keywords="flipper nfc rfid infrared ir gpio uart i2c spi ble bluetooth wifi pineapple wireless sdr rf hardware">
+    <h2>Hardware Security Lab</h2>
+    <div class="desc">Physical-device and radio testing for your own equipment or an explicitly authorized lab. Default mode is passive/read-only.</div>
+    <div class="grid three">
+      <div class="mini"><h3>NFC / RFID</h3><p>Identify tag technology, read metadata from your own tags, inventory devices and compare test captures.</p></div>
+      <div class="mini"><h3>Infrared</h3><p>Capture and replay commands for your own TVs, remotes and IR-controlled devices.</p></div>
+      <div class="mini"><h3>GPIO / UART</h3><p>Work with development boards and your own electronics for serial debugging, voltage-safe GPIO experiments and firmware diagnostics.</p></div>
+      <div class="mini"><h3>BLE</h3><p>Inventory nearby Bluetooth Low Energy advertisements and analyze your own devices.</p></div>
+      <div class="mini"><h3>Wi-Fi Lab</h3><p>Kismet/Pineapple-style inventory, packet capture, rogue-AP detection and controlled training-network tests.</p></div>
+      <div class="mini"><h3>SDR / RF</h3><p>Receive and analyze lawfully monitorable radio signals, waterfall data and recorded IQ files.</p></div>
+    </div>
+    <div class="note">Credential cloning, unauthorized access-card copying, third-party Wi-Fi disruption and active attacks against networks you do not control are not enabled by default.</div>
+  </section>
+
+  <section class="card" data-category="satellite hardware" data-keywords="satellite tle orbital pass prediction satnogs gpredict sdr rf gr-satellites satdump nos3 telemetry">
+    <h2>Satellite / RF</h2>
+    <div class="grid three">
+      <div class="mini"><h3>TLE tracking</h3><p>Track public orbital elements and upcoming satellite passes.</p></div>
+      <div class="mini"><h3>Passive telemetry</h3><p>gr-satellites / SatDump-style processing of signals you may lawfully receive.</p></div>
+      <div class="mini"><h3>Safe security lab</h3><p>NASA NOS3-style digital-twin simulation for space-system experiments without targeting live spacecraft.</p></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="evidence incident" data-keywords="evidence vault sha256 timestamp chain of custody report screenshot hash case">
+    <h2>Evidence Vault</h2>
+    <div class="desc">Every important finding should be timestamped, hashed and attached to an incident case before it is edited or moved.</div>
+    <div class="grid two">
+      <div class="mini"><h3>Integrity</h3><p>SHA-256 hashes help show that saved evidence has not changed since capture.</p></div>
+      <div class="mini"><h3>Case packet</h3><p>Store source URL, capture time, notes, indicators, screenshots and remediation/reporting actions together.</p></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="privacy darkweb" data-keywords="privacy opsec vpn tor whonix tails metadata fingerprint webrtc dns compartment">
+    <h2>Privacy / OPSEC</h2>
+    <div class="desc">Reduce linkability between normal identity and legitimate research. No setup can guarantee invisibility.</div>
+    <div class="grid three">
+      <div class="mini"><h3>Compartment</h3><p>Separate research browser/VM from personal accounts and everyday browsing.</p></div>
+      <div class="mini"><h3>Leak checks</h3><p>Review visible IP, DNS behavior, WebRTC exposure and browser fingerprinting risks.</p></div>
+      <div class="mini"><h3>Metadata control</h3><p>Inspect and strip unnecessary EXIF/document metadata before sharing research artifacts.</p></div>
+    </div>
+  </section>
+
+  <section class="card" data-category="tools" data-keywords="tools adapters registry osiris shadowbroker spiderfoot opencti misp yara sigma exiftool virustotal urlhaus abuseipdb otx">
+    <h2>Toolbox / External Adapters</h2>
+    <div class="tool-list">
+      <div class="tool"><span class="badge">STAGED</span><strong>OSINT / Global Intelligence</strong><small>Sherlock, SpiderFoot, OSIRIS and Shadowbroker-style public intelligence adapters.</small></div>
+      <div class="tool"><span class="badge">STAGED</span><strong>Threat Intelligence</strong><small>OpenCTI, MISP, VirusTotal, URLhaus, AbuseIPDB and OTX enrichment.</small></div>
+      <div class="tool"><span class="badge">STAGED</span><strong>Detection Engineering</strong><small>YARA for file patterns and Sigma for portable log detections.</small></div>
+      <div class="tool"><span class="badge">WORKER REQUIRED</span><strong>Heavy scanners / crawlers</strong><small>Run in an isolated Linux worker rather than in the public browser frontend.</small></div>
     </div>
   </section>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let lastReport=null;
+let activeCategory='all', lastReport=null;
 function show(el,text,color='var(--gold)'){el.style.display='block';el.style.borderLeftColor=color;el.textContent=text;el.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function indicators(text){
   const urls=[...new Set(text.match(/https?:\/\/[^\s<>"']+/gi)||[])];
   const emails=[...new Set(text.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)||[])];
   const ips=[...new Set(text.match(/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g)||[])];
-  const domains=[]; for(const u of urls){try{domains.push(new URL(u).hostname)}catch{}}
+  const domains=[];for(const u of urls){try{domains.push(new URL(u).hostname)}catch{}}
   return {urls,emails,ips,domains:[...new Set(domains)]};
 }
-function heuristicRisk(text,io){
-  let score=0, reasons=[];
-  if(/xn--/i.test(text)){score+=20;reasons.push('Punycode / IDN hostname detected');}
-  if(/(?:login|verify|password|wallet|seed|urgent|suspended|invoice)/i.test(text)){score+=12;reasons.push('Common social-engineering language');}
-  if(io.urls.some(u=>/^http:\/\//i.test(u))){score+=8;reasons.push('Unencrypted HTTP URL present');}
-  if(io.ips.length){score+=5;reasons.push('Raw IP indicator present');}
-  if(io.urls.length>=4){score+=8;reasons.push('Multiple URLs present');}
-  score=Math.min(score,100); return {score,reasons,label:score>=35?'HIGHER':score>=15?'ELEVATED':'LOW'};
-}
-async function sha256(text){const b=new TextEncoder().encode(text);const h=await crypto.subtle.digest('SHA-256',b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');}
-$('analyzeBtn').addEventListener('click',async()=>{
-  const text=$('incidentInput').value.trim(); if(!text)return alert('Paste an indicator or evidence first.');
-  const io=indicators(text), risk=heuristicRisk(text,io), hash=await sha256(text);
-  lastReport={created_at:new Date().toISOString(),type:$('incidentType').value,sha256:hash,heuristic_risk:risk,indicators:io,original_text:text};
-  show($('incidentOutput'),`HEURISTIC RISK: ${risk.label} (${risk.score}/100)\n\nURLs: ${io.urls.join('\n')||'none'}\n\nDomains: ${io.domains.join('\n')||'none'}\n\nIPs: ${io.ips.join('\n')||'none'}\n\nEmails: ${io.emails.join('\n')||'none'}\n\nReasons: ${risk.reasons.join('; ')||'No basic heuristic triggers'}\n\nEvidence SHA-256: ${hash}\n\nThis score is a triage aid, not a malware verdict.`,risk.score>=35?'var(--red)':risk.score>=15?'var(--yellow)':'var(--green)');
-});
+function heuristicRisk(text,io){let score=0,reasons=[];if(/xn--/i.test(text)){score+=20;reasons.push('Punycode / IDN hostname detected');}if(/(?:login|verify|password|wallet|seed|urgent|suspended|invoice)/i.test(text)){score+=12;reasons.push('Common social-engineering language');}if(io.urls.some(u=>/^http:\/\//i.test(u))){score+=8;reasons.push('Unencrypted HTTP URL present');}if(io.ips.length){score+=5;reasons.push('Raw IP indicator present');}if(io.urls.length>=4){score+=8;reasons.push('Multiple URLs present');}score=Math.min(score,100);return{score,reasons,label:score>=35?'HIGHER':score>=15?'ELEVATED':'LOW'};}
+async function sha256(text){const b=new TextEncoder().encode(text);const h=await crypto.subtle.digest('SHA-256',b);return[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+function applyFilters(){const q=$('toolFilter').value.trim().toLowerCase();document.querySelectorAll('.card[data-category]').forEach(card=>{const cats=card.dataset.category.split(/\s+/);const catOk=activeCategory==='all'||cats.includes(activeCategory);const hay=(card.innerText+' '+(card.dataset.keywords||'')).toLowerCase();card.hidden=!(catOk&&(!q||hay.includes(q)));});}
+document.querySelectorAll('#categoryNav button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('#categoryNav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeCategory=btn.dataset.cat;applyFilters();window.scrollTo({top:document.querySelector('.topbar').offsetTop,behavior:'smooth'});}));
+$('toolFilter').addEventListener('input',applyFilters);$('clearFilter').addEventListener('click',()=>{$('toolFilter').value='';activeCategory='all';document.querySelectorAll('#categoryNav button').forEach(b=>b.classList.toggle('active',b.dataset.cat==='all'));applyFilters();});
+$('personSearchBtn').addEventListener('click',()=>{const q=$('personInput').value.trim();if(!q)return alert('Enter a public identifier first.');const t=$('personType').value;const exact=encodeURIComponent('"'+q+'"');const google='https://www.google.com/search?q='+exact;const github='https://github.com/search?q='+encodeURIComponent(q)+'&type=users';const reddit='https://www.google.com/search?q='+encodeURIComponent('"'+q+'" site:reddit.com');const docs='https://www.google.com/search?q='+encodeURIComponent('"'+q+'" (filetype:pdf OR filetype:doc OR filetype:docx)');const ahmia='https://ahmia.fi/search/?q='+encodeURIComponent(q);const out=$('personOutput');out.style.display='block';out.innerHTML=`<strong>PUBLIC OSINT WORKSPACE</strong><br><small>Type: ${t}. Treat matching names/handles as leads until independently verified.</small><a class="link" target="_blank" rel="noopener noreferrer" href="${google}">Exact public web search</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="${github}">GitHub account/code pivot</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="${reddit}">Reddit mention pivot</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="${docs}">Public document search</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="${ahmia}">Tor / onion index pivot</a>`;});
+$('sherlockJobBtn').addEventListener('click',()=>{const q=$('personInput').value.trim();if(!q)return alert('Enter a username or alias first.');const job={adapter:'sherlock',mode:'public-username-discovery',target:q,scope:'public-profiles-only',created_at:new Date().toISOString()};show($('personOutput'),JSON.stringify(job,null,2),'var(--cyan)');});
+$('analyzeBtn').addEventListener('click',async()=>{const text=$('incidentInput').value.trim();if(!text)return alert('Paste an indicator or evidence first.');const io=indicators(text),risk=heuristicRisk(text,io),hash=await sha256(text);lastReport={created_at:new Date().toISOString(),type:$('incidentType').value,sha256:hash,heuristic_risk:risk,indicators:io,original_text:text};show($('incidentOutput'),`HEURISTIC RISK: ${risk.label} (${risk.score}/100)\n\nURLs: ${io.urls.join('\n')||'none'}\n\nDomains: ${io.domains.join('\n')||'none'}\n\nIPs: ${io.ips.join('\n')||'none'}\n\nEmails: ${io.emails.join('\n')||'none'}\n\nReasons: ${risk.reasons.join('; ')||'No basic heuristic triggers'}\n\nEvidence SHA-256: ${hash}\n\nThis score is a triage aid, not a malware verdict.`,risk.score>=35?'var(--red)':risk.score>=15?'var(--yellow)':'var(--green)');});
 $('downloadBtn').addEventListener('click',()=>{if(!lastReport)return alert('Analyze an incident first.');const blob=new Blob([JSON.stringify(lastReport,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`watchdog-incident-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
-$('extractBtn').addEventListener('click',()=>{const t=$('decodeInput').value;const io=indicators(t);show($('decodeOutput'),JSON.stringify(io,null,2),'var(--cyan)');});
+$('extractBtn').addEventListener('click',()=>{const io=indicators($('decodeInput').value);show($('decodeOutput'),JSON.stringify(io,null,2),'var(--cyan)');});
 $('urlDecodeBtn').addEventListener('click',()=>{try{show($('decodeOutput'),decodeURIComponent($('decodeInput').value),'var(--cyan)')}catch(e){show($('decodeOutput'),'URL decode failed: '+e.message,'var(--red)')}});
-$('base64Btn').addEventListener('click',()=>{try{const raw=$('decodeInput').value.replace(/\s+/g,'');const bin=atob(raw);const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));show($('decodeOutput'),new TextDecoder().decode(bytes),'var(--cyan)')}catch(e){show($('decodeOutput'),'Base64 decode failed: input is not valid standard Base64.','var(--red)')}});
+$('base64Btn').addEventListener('click',()=>{try{const raw=$('decodeInput').value.replace(/\s+/g,'');const bin=atob(raw);const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));show($('decodeOutput'),new TextDecoder().decode(bytes),'var(--cyan)')}catch{show($('decodeOutput'),'Base64 decode failed: input is not valid standard Base64.','var(--red)')}});
 $('jsonBtn').addEventListener('click',()=>{try{show($('decodeOutput'),JSON.stringify(JSON.parse($('decodeInput').value),null,2),'var(--green)')}catch(e){show($('decodeOutput'),'Invalid JSON: '+e.message,'var(--red)')}});
 $('hashBtn').addEventListener('click',async()=>show($('decodeOutput'),'SHA-256\n'+await sha256($('decodeInput').value),'var(--green)'));
 $('traceBtn').addEventListener('click',async()=>{const ip=$('ipInput').value.trim();if(!ip)return alert('Enter an IP address first.');show($('traceOutput'),'Querying public network metadata...','var(--yellow)');try{const r=await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json`);const d=await r.json();if(!r.ok||d.error)throw new Error('lookup failed');show($('traceOutput'),`IP: ${ip}\nCountry: ${d.country||'unknown'}\nRegion: ${d.region||'unknown'}\nCity: ${d.city||'unknown'}\nNetwork / ASN: ${d.org||'unknown'}\nHostname: ${d.hostname||'unknown'}\n\nTreat this as network-exit metadata, not proof of a person's physical location.`,'var(--yellow)')}catch{show($('traceOutput'),'Network lookup failed. Verify the address or try again later.','var(--red)')}});
-$('matrixBtn').addEventListener('click',()=>{const q=$('queryInput').value.trim();if(!q)return alert('Enter an identifier first.');const qq=encodeURIComponent('"'+q+'"'),docs=encodeURIComponent('"'+q+'" (filetype:pdf OR filetype:doc OR filetype:docx)'),social=encodeURIComponent('"'+q+'" (site:reddit.com OR site:x.com OR site:twitter.com)'),ahmia=encodeURIComponent(q);$('matrixOutput').style.display='block';$('matrixOutput').innerHTML=`<a class="link" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${qq}">Exact public search</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${docs}">Public documents</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${social}">Social mentions</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://ahmia.fi/search/?q=${ahmia}">Tor / onion index via Ahmia</a>`;});
+$('matrixBtn').addEventListener('click',()=>{const q=$('queryInput').value.trim();if(!q)return alert('Enter an identifier first.');const qq=encodeURIComponent('"'+q+'"'),docs=encodeURIComponent('"'+q+'" (filetype:pdf OR filetype:doc OR filetype:docx)'),social=encodeURIComponent('"'+q+'" (site:reddit.com OR site:x.com OR site:twitter.com)'),ahmia=encodeURIComponent(q);const out=$('matrixOutput');out.style.display='block';out.innerHTML=`<a class="link" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${qq}">Exact public search</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${docs}">Public documents</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${social}">Social mentions</a><a class="link secondary" target="_blank" rel="noopener noreferrer" href="https://ahmia.fi/search/?q=${ahmia}">Tor / onion index via Ahmia</a>`;});
+applyFilters();
 </script>
 </body>
 </html>
