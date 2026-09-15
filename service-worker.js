@@ -1,8 +1,9 @@
-const CACHE = 'watchdog-shell-v1';
+const CACHE = 'watchdog-shell-v2';
 const SHELL = [
   './',
   './app.html',
   './index.html',
+  './scam-defense.html',
   './privacy.html',
   './impersonation.html',
   './manifest.json',
@@ -33,6 +34,6 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE).then(cache => cache.put(event.request, clone));
         return response;
       })
-      .catch(() => caches.match(event.request).then(hit => hit || caches.match('./index.html')))
+      .catch(() => caches.match(event.request).then(hit => hit || caches.match('./app.html')))
   );
 });
