@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "categories": {
+    "recon-people": [
+      {"name":"Sherlock","repo":"sherlock-project/sherlock","runtime":"isolated-worker","mode":"public-username-discovery"},
+      {"name":"SpiderFoot","repo":"smicallef/spiderfoot","runtime":"isolated-service","mode":"public-osint-correlation"},
+      {"name":"OSIRIS","repo":"simplifaisoul/osiris","runtime":"isolated-service","mode":"global-public-osint"},
+      {"name":"Shadowbroker","repo":"BigBodyCobain/Shadowbroker","runtime":"isolated-service","mode":"global-public-osint"}
+    ],
+    "attack-surface-authorized": [
+      {"name":"OWASP Amass","repo":"owasp-amass/amass","runtime":"isolated-worker","authorization_required":true},
+      {"name":"Subfinder","repo":"projectdiscovery/subfinder","runtime":"isolated-worker","authorization_required":true},
+      {"name":"HTTPX","repo":"projectdiscovery/httpx","runtime":"isolated-worker","authorization_required":true},
+      {"name":"Naabu","repo":"projectdiscovery/naabu","runtime":"isolated-worker","authorization_required":true},
+      {"name":"Katana","repo":"projectdiscovery/katana","runtime":"isolated-worker","authorization_required":true},
+      {"name":"Nmap","repo":"nmap/nmap","runtime":"isolated-worker","authorization_required":true},
+      {"name":"Nuclei","repo":"projectdiscovery/nuclei","runtime":"isolated-worker","authorization_required":true},
+      {"name":"OWASP ZAP","repo":"zaproxy/zaproxy","runtime":"isolated-worker","authorization_required":true}
+    ],
+    "threat-intelligence": [
+      {"name":"OpenCTI","repo":"OpenCTI-Platform/opencti","runtime":"isolated-service"},
+      {"name":"MISP","repo":"MISP/MISP","runtime":"isolated-service"},
+      {"name":"YARA","repo":"VirusTotal/yara","runtime":"quarantine-worker"},
+      {"name":"Sigma","repo":"SigmaHQ/sigma","runtime":"defense-worker"},
+      {"name":"dnstwist","repo":"elceef/dnstwist","runtime":"isolated-worker"}
+    ],
+    "network-defense": [
+      {"name":"Suricata","repo":"OISF/suricata","runtime":"defense-worker"},
+      {"name":"Zeek","repo":"zeek/zeek","runtime":"defense-worker"},
+      {"name":"Wireshark","repo":"wireshark/wireshark","runtime":"operator-workstation"},
+      {"name":"CrowdSec","repo":"crowdsecurity/crowdsec","runtime":"defense-worker"}
+    ],
+    "deception": [
+      {"name":"OpenCanary","repo":"thinkst/opencanary","runtime":"isolated-worker"},
+      {"name":"Cowrie","repo":"cowrie/cowrie","runtime":"isolated-worker"},
+      {"name":"T-Pot","repo":"telekom-security/tpotce","runtime":"dedicated-vm"},
+      {"name":"Canarytokens","repo":"thinkst/canarytokens","runtime":"external-or-self-host"}
+    ],
+    "darkweb-opsec": [
+      {"name":"Tor Browser","runtime":"operator-research-environment","mode":"passive-research"},
+      {"name":"Whonix","runtime":"research-vm","mode":"compartmentalized-tor"},
+      {"name":"Tails","runtime":"bootable-research-os","mode":"disposable-tor"},
+      {"name":"ExifTool","repo":"exiftool/exiftool","runtime":"quarantine-worker","mode":"metadata-inspection"}
+    ],
+    "hardware-security": [
+      {"name":"Flipper Zero","runtime":"operator-hardware","modes":["nfc","rfid","infrared","gpio","sub-ghz-observation"],"default":"read-observe"},
+      {"name":"Kismet","repo":"kismetwireless/kismet","runtime":"wireless-lab-worker","modes":["wifi-inventory","ble-inventory","passive-monitoring"],"authorization_required":true},
+      {"name":"Wi-Fi Pineapple","runtime":"operator-hardware","modes":["lab-ap","wireless-audit","rogue-ap-detection"],"authorization_required":true},
+      {"name":"GNU Radio","repo":"gnuradio/gnuradio","runtime":"sdr-lab-worker","modes":["spectrum-analysis","signal-processing"]}
+    ],
+    "satellite-rf": [
+      {"name":"gr-satellites","repo":"daniestevez/gr-satellites","runtime":"sdr-lab-worker","mode":"passive-telemetry"},
+      {"name":"SatDump","repo":"SatDump/SatDump","runtime":"sdr-lab-worker","mode":"passive-satellite-processing"},
+      {"name":"SatNOGS","repo":"satnogs/satnogs-network","runtime":"public-network-or-self-host","mode":"public-ground-station-data"},
+      {"name":"Gpredict","repo":"csete/gpredict","runtime":"operator-workstation","mode":"pass-prediction"},
+      {"name":"NASA NOS3","repo":"nasa/nos3","runtime":"isolated-lab","mode":"space-system-simulation"}
+    ]
+  },
+  "guardrails": {
+    "no_hack_back": true,
+    "no_third_party_wifi_disruption": true,
+    "no_credential_theft": true,
+    "no_unauthorized_access_card_cloning": true,
+    "no_live_satellite_commanding": true,
+    "active_testing_requires_owned_or_explicitly_authorized_target": true
+  }
+}
