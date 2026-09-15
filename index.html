@@ -79,6 +79,16 @@
 </div>
 
 <script>
+    function escapeHtml(value) {
+        return value.replace(/[&<>'"]/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        })[char]);
+    }
+
     function generateVideoPrompts() {
         const theme = document.getElementById('themeSelect').value;
         const out = document.getElementById('consoleBox');
@@ -86,7 +96,7 @@
         document.getElementById('consoleHeader').innerText = "🎬 Generated Video Prompts";
         
         document.getElementById('consoleContent').innerHTML = `
-            <div class="prompt-text"><strong>Scene 1 Prompt:</strong> Cinematic photorealistic opening shot, 8k resolution, ${theme} aesthetic. Heavy driving industrial beat sync cuts. Camera pans slowly.</div>
+            <div class="prompt-text"><strong>Scene 1 Prompt:</strong> Cinematic photorealistic opening shot, 8k resolution, ${escapeHtml(theme)} aesthetic. Heavy driving industrial beat sync cuts. Camera pans slowly.</div>
         `;
         out.style.display = 'block';
         out.scrollIntoView({ behavior: 'smooth' });
@@ -103,22 +113,22 @@
         out.style.display = 'block';
 
         try {
-            const response = await fetch(`https://ipinfo.io{ip}/json`);
+            const response = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json`);
             const data = await response.json();
 
-            if(data.error || !data.country) {
-                document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Trace Routing Failed: Verify that the IP string format is valid.</div>`;
+            if(!response.ok || data.error || !data.country) {
+                document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Trace Routing Failed: Verify that the IP string format is valid or try again later.</div>`;
                 return;
             }
 
             document.getElementById('consoleContent').innerHTML = `
                 <div class="prompt-text">
 <strong>[ROUTING STATUS]</strong>: HANDSHAKE SUCCESSFUL
-<strong>[RESOLVED COUNTRY]</strong>: ${data.country}
-<strong>[REGIONAL ZONE]</strong>: ${data.region || 'UNMAPPED'}
-<strong>[NETWORK OWNER (ASN)]</strong>: ${data.org || 'UNTRACKED'}
+<strong>[RESOLVED COUNTRY]</strong>: ${escapeHtml(String(data.country))}
+<strong>[REGIONAL ZONE]</strong>: ${escapeHtml(String(data.region || 'UNMAPPED'))}
+<strong>[NETWORK OWNER (ASN)]</strong>: ${escapeHtml(String(data.org || 'UNTRACKED'))}
 
-<em>Security Note: If this flags a hosting node center (like Amazon or DigitalOcean), the scammer is utilizing an active proxy/VPN network layer.</em>
+<em>Security Note: IP geolocation identifies the apparent network exit point. VPNs, proxies, mobile carriers, hosting providers, and Tor can make that location different from the sender's real location.</em>
                 </div>
             `;
         } catch (err) {
@@ -135,19 +145,21 @@
         out.style.borderLeftColor = 'var(--osint-color)';
         document.getElementById('consoleHeader').innerText = "🔎 Deep Footprint Exploration Grid";
 
-        // Fixed structural syntax parameters for standard search parameters
+        const safeQuery = escapeHtml(query);
         const dorkQuote = encodeURIComponent(`"${query}"`);
-        const dorkPublicFiles = encodeURIComponent(`"${query}" filetype:pdf OR filetype:doc`);
-        const dorkSocialLeaks = encodeURIComponent(`site:reddit.com OR site:twitter.com "${query}" leak`);
+        const dorkPublicFiles = encodeURIComponent(`"${query}" (filetype:pdf OR filetype:doc OR filetype:docx)`);
+        const dorkSocial = encodeURIComponent(`"${query}" (site:reddit.com OR site:x.com OR site:twitter.com)`);
+        const ahmiaQuery = encodeURIComponent(query);
 
         document.getElementById('consoleContent').innerHTML = `
-            <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">Active Parameters for: <strong>${query}</strong>. Select an orchestration pathway to crawl index engines for files, mentions, or exposed links:</p>
+            <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">Active Parameters for: <strong>${safeQuery}</strong>. Select a search pathway for public mentions, indexed files, social posts, or Tor-indexed onion results:</p>
             
             <div class="link-grid">
-                <a class="link-btn" href="https://google.com{dorkQuote}" target="_blank">Launch Exact Target Search 🚀</a>
-                <a class="link-btn" href="https://google.com{dorkPublicFiles}" target="_blank">Exposed Document Index</a>
-                <a class="link-btn" href="https://google.com{dorkSocialLeaks}" target="_blank">Launch Leak Scan 🚀</a>
-                <a class="link-btn" href="https://osintframework.com" target="_blank">OSINT Global Matrix</a>
+                <a class="link-btn" href="https://www.google.com/search?q=${dorkQuote}" target="_blank" rel="noopener noreferrer">Exact Target Search 🚀</a>
+                <a class="link-btn" href="https://www.google.com/search?q=${dorkPublicFiles}" target="_blank" rel="noopener noreferrer">Public Document Index</a>
+                <a class="link-btn" href="https://www.google.com/search?q=${dorkSocial}" target="_blank" rel="noopener noreferrer">Social Mention Search</a>
+                <a class="link-btn" href="https://ahmia.fi/search/?q=${ahmiaQuery}" target="_blank" rel="noopener noreferrer">Tor / Onion Index</a>
+                <a class="link-btn" href="https://osintframework.com" target="_blank" rel="noopener noreferrer">OSINT Global Matrix</a>
             </div>
         `;
         out.style.display = 'block';
