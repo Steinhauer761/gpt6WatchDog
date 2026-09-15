@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "policy": {
     "mode": "defensive-authorized-only",
     "allow_hack_back": false,
@@ -7,7 +7,7 @@
     "allow_rf_transmit_to_live_satellites": false,
     "default_timeout_seconds": 120,
     "default_max_concurrency": 2,
-    "notes": "External tools are pinned to verified upstream repositories before activation. Active testing is restricted to systems the user owns or is explicitly authorized to assess. Satellite features are passive reception/analysis or simulator/lab-only."
+    "notes": "External tools are pinned to verified upstream repositories before activation. Active testing is restricted to systems the user owns or is explicitly authorized to assess. Satellite features are passive reception/analysis or simulator/lab-only. Media-forensics results are evidentiary signals rather than binary truth or deepfake verdicts."
   },
   "adapters": [
     {
@@ -27,6 +27,54 @@
       "runtime": "browser-local",
       "accepted_targets": ["public-profile-url", "username", "public-profile-photo", "public-bio"],
       "purpose": "Preserve public evidence, compare profile images locally, document inconsistencies and generate a reporting packet without doxxing"
+    },
+    {
+      "id": "media-forensics-ui",
+      "category": "media-forensics",
+      "name": "Media / Authenticity Forensics",
+      "status": "implemented-ui",
+      "runtime": "browser-local + isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "pdf", "document", "text", "transcript"],
+      "purpose": "Local hashing and first-pass media/text triage, then structured worker analysis for provenance, metadata conflicts, edits, discontinuities and internal inconsistencies",
+      "binary_fake_verdict": false
+    },
+    {
+      "id": "ffmpeg-forensics",
+      "category": "media-forensics",
+      "name": "FFmpeg / FFprobe Media Inspection",
+      "status": "worker-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["video", "audio", "image"],
+      "purpose": "Inspect streams, codecs, timestamps, frame rates, duration, keyframes, scene boundaries and audio/video container structure",
+      "repository": "FFmpeg/FFmpeg"
+    },
+    {
+      "id": "opencv-forensics",
+      "category": "media-forensics",
+      "name": "OpenCV Frame Analysis",
+      "status": "worker-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["video", "image"],
+      "purpose": "Frame sampling, duplicate-frame detection, visual discontinuity analysis and image-region consistency checks",
+      "repository": "opencv/opencv"
+    },
+    {
+      "id": "c2pa-forensics",
+      "category": "media-forensics",
+      "name": "C2PA Content Credentials Check",
+      "status": "worker-staged-pending-upstream-verify",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "document"],
+      "purpose": "Check for signed C2PA provenance/content credentials when present. Absence of credentials is not evidence that content is fake."
+    },
+    {
+      "id": "metadata-forensics",
+      "category": "media-forensics",
+      "name": "Metadata / Container Forensics",
+      "status": "worker-staged-pending-upstream-verify",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "pdf", "document"],
+      "purpose": "Inspect timestamps, software tags, device fields, dimensions, codec/container metadata and conflicts between metadata sources"
     },
     {
       "id": "sherlock",
