@@ -1,8 +1,9 @@
-const CACHE = 'watchdog-shell-v3';
+const CACHE = 'watchdog-shell-v4';
 const SHELL = [
   './',
   './app.html',
   './index.html',
+  './exposure-scanner.html',
   './scam-defense.html',
   './media-forensics.html',
   './privacy.html',
