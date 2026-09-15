@@ -1,18 +1,19 @@
 {
-  "name": "Astra Security Operations Center",
-  "short_name": "Astra Hub",
-  "start_url": "index.html",
+  "name": "Field Tools",
+  "short_name": "Field Tools",
+  "description": "Private WatchDog security and OSINT console",
+  "start_url": "app.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0c10",
-  "theme_color": "#0b0c10",
+  "background_color": "#070a0f",
+  "theme_color": "#070a0f",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://icons8.com",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
 }
-
