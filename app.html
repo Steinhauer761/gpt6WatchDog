@@ -8,21 +8,53 @@
   <link rel="icon" href="app-icon.svg" type="image/svg+xml">
   <title>Field Tools</title>
   <style>
-    html,body{margin:0;min-height:100%;background:#070a0f;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    main{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center}
-    .box{max-width:360px}
-    .icon{width:92px;height:92px;margin:0 auto 18px}
-    h1{font-size:21px;margin:0 0 8px}p{font-size:13px;color:#9ba8b6;line-height:1.5}
+    :root{--bg:#070a0f;--panel:#101821;--border:#263647;--text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#14202e 0,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:620px;margin:0 auto;padding:28px 18px 42px}.head{text-align:center;margin-bottom:22px}.icon{width:82px;height:82px;margin:0 auto 14px}h1{font-size:22px;margin:0 0 7px;letter-spacing:.04em}.sub{font-size:12px;line-height:1.5;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}a.card{display:block;text-decoration:none;color:var(--text);padding:16px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#111a24,#0b1118)}a.card:active{transform:scale(.99)}.card h2{font-size:14px;margin:0 0 6px;color:var(--gold)}.card p{font-size:11px;line-height:1.45;color:var(--muted);margin:0}.tag{display:inline-block;margin-top:10px;font-size:9px;border:1px solid var(--border);border-radius:999px;padding:4px 7px;color:#cdd7e1}.cyan h2{color:var(--cyan)}.foot{margin-top:18px;text-align:center;font-size:10px;color:var(--muted)}
   </style>
 </head>
 <body>
-<main><div class="box"><img class="icon" src="app-icon.svg" alt=""><h1>Field Tools</h1><p>Starting secure console…</p></div></main>
+<main>
+  <div class="head">
+    <img class="icon" src="app-icon.svg" alt="">
+    <h1>Field Tools</h1>
+    <div class="sub">Private security, OSINT, evidence and defensive research tools.</div>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="index.html">
+      <h2>WatchDog Console</h2>
+      <p>Recon, people search, incidents, network intelligence, defense, authorized pen testing, dark-web research, hardware lab, satellite/RF and evidence tools.</p>
+      <span class="tag">MAIN CONSOLE</span>
+    </a>
+
+    <a class="card cyan" href="scam-defense.html">
+      <h2>Scam / Fake Account</h2>
+      <p>Preserve evidence, hash screenshots/files, search public identifiers, document impersonation indicators and build a reporting packet.</p>
+      <span class="tag">PUBLIC-SOURCE CASE WORK</span>
+    </a>
+
+    <a class="card" href="impersonation.html">
+      <h2>Impersonation Defense</h2>
+      <p>Document suspicious profiles, compare public claims and prepare evidence for platform reporting without doxxing.</p>
+      <span class="tag">CASE BUILDER</span>
+    </a>
+
+    <a class="card" href="privacy.html">
+      <h2>Privacy / OPSEC</h2>
+      <p>Check your research compartment, reduce linkability, review privacy practices and clean metadata before sharing evidence.</p>
+      <span class="tag">SELF-AUDIT</span>
+    </a>
+  </div>
+
+  <div class="foot">Active security testing remains restricted to systems you own or are explicitly authorized to assess.</div>
+</main>
 <script>
 (async()=>{
   try {
     if ('serviceWorker' in navigator) await navigator.serviceWorker.register('./service-worker.js', {scope:'./'});
   } catch (e) { console.warn('Service worker registration failed', e); }
-  window.location.replace('./index.html');
 })();
 </script>
 </body>
