@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "policy": {
+    "mode": "defensive-authorized-only",
+    "allow_hack_back": false,
+    "default_timeout_seconds": 120,
+    "default_max_concurrency": 2,
+    "notes": "External tools must be pinned to an exact upstream repository and reviewed before activation. Heavy tools run in an isolated worker, never directly in the browser."
+  },
+  "adapters": [
+    {
+      "id": "username-osint",
+      "name": "Username / Identity OSINT",
+      "status": "awaiting-upstream-verification",
+      "runtime": "worker",
+      "accepted_targets": ["username", "alias"],
+      "purpose": "Public-account discovery for self-audit or authorized investigation",
+      "repository": null
+    },
+    {
+      "id": "email-exposure",
+      "name": "Email / Account Exposure",
+      "status": "awaiting-upstream-verification",
+      "runtime": "worker",
+      "accepted_targets": ["email"],
+      "purpose": "Public account-presence and exposure checks",
+      "repository": null
+    },
+    {
+      "id": "domain-intel",
+      "name": "Domain / Infrastructure Intelligence",
+      "status": "awaiting-upstream-verification",
+      "runtime": "worker",
+      "accepted_targets": ["domain", "ip"],
+      "purpose": "DNS, RDAP, certificate, ASN and public attack-surface enrichment",
+      "repository": null
+    },
+    {
+      "id": "crawler",
+      "name": "Authorized Crawler / Scanner",
+      "status": "awaiting-upstream-verification",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-domain", "authorized-host"],
+      "purpose": "Authorized security scanning with rate limits and audit logging",
+      "repository": null
+    }
+  ]
+}
