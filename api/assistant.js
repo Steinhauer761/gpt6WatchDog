@@ -165,12 +165,15 @@ export default async function handler(req, res) {
   input.push({ role: 'user', content: message });
 
   const model = String(process.env.OPENAI_MODEL || 'gpt-5.6-luna').trim();
+  // A non-stored response cannot be continued by ID. Carry the output items
+  // forward explicitly, including encrypted reasoning and function calls.
+  const conversation = [...input];
   let response;
   try {
     const r = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, instructions, input, tools, store: false, reasoning: { effort: 'low' } }),
+      body: JSON.stringify({ model, instructions, input: conversation, tools, store: false, include: ['reasoning.encrypted_content'], reasoning: { effort: 'low' } }),
     });
     response = await r.json();
     if (!r.ok) return json(res, r.status, { error: response?.error?.message || 'OpenAI request failed' });
@@ -185,10 +188,11 @@ export default async function handler(req, res) {
         const result = await runTool(call.name, args);
         outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(result) });
       }
+      conversation.push(...response.output, ...outputs);
       const follow = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, previous_response_id: response.id, input: outputs, tools, store: false }),
+        body: JSON.stringify({ model, instructions, input: conversation, tools, store: false, include: ['reasoning.encrypted_content'], reasoning: { effort: 'low' } }),
       });
       response = await follow.json();
       if (!follow.ok) return json(res, follow.status, { error: response?.error?.message || 'OpenAI tool follow-up failed' });
