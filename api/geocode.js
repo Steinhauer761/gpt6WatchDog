@@ -79,7 +79,7 @@ export default async function handler(req, res) {
       query: q,
       count: results.length,
       results,
-      note: 'Address and place search uses public map data. Street View opens Google Maps at the returned coordinates when imagery is available. Do not treat a map result as proof that a person lives at an address.',
+      note: 'Address and place search uses public map data. The Street View link asks Google Maps for the latest available panorama near these coordinates, but Street View is not live and some locations may only have old imagery. In Google Maps, use See more dates when available to compare other captures. Do not treat a map result as proof that a person lives at an address.',
     });
   } catch (error) {
     const timedOut = error?.name === 'AbortError';
