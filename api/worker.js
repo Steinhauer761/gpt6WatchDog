@@ -1,8 +1,6 @@
 const DEFAULT_WORKER_URL = 'https://gpt6watchdog-2.onrender.com';
 
-export const config = {
-  maxDuration: 60,
-};
+export const config = { maxDuration: 60 };
 
 function json(res, status, body) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -24,11 +22,8 @@ function cleanBaseUrl(value) {
 async function readJsonResponse(response) {
   const text = await response.text();
   if (!text) return {};
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { detail: text.slice(0, 4000) };
-  }
+  try { return JSON.parse(text); }
+  catch { return { detail: text.slice(0, 4000) }; }
 }
 
 export default async function handler(req, res) {
@@ -46,26 +41,18 @@ export default async function handler(req, res) {
     torfetch: { method: 'POST', path: '/v1/tor/fetch', protected: true },
     ip: { method: 'POST', path: '/v1/intel/ip', protected: true },
     validate: { method: 'POST', path: '/v1/jobs/validate', protected: true },
+    netprobe: { method: 'POST', path: '/v1/probe/network', protected: true },
+    webprobe: { method: 'POST', path: '/v1/probe/web-security', protected: true },
   };
 
   const route = routes[action];
-  if (!route) {
-    return json(res, 400, {
-      error: 'Unknown worker action',
-      allowed_actions: Object.keys(routes),
-    });
-  }
-
+  if (!route) return json(res, 400, { error: 'Unknown worker action', allowed_actions: Object.keys(routes) });
   if (req.method !== route.method) {
     res.setHeader('Allow', route.method);
     return json(res, 405, { error: `Use ${route.method} for ${action}` });
   }
-
   if (route.protected && !apiKey) {
-    return json(res, 503, {
-      error: 'Worker bridge is not configured',
-      detail: 'WATCHDOG_WORKER_API_KEY is missing from the Vercel environment.',
-    });
+    return json(res, 503, { error: 'Worker bridge is not configured', detail: 'WATCHDOG_WORKER_API_KEY is missing from the Vercel environment.' });
   }
 
   let body;
@@ -109,16 +96,25 @@ export default async function handler(req, res) {
       target: typeof req.body?.target === 'string' ? req.body.target.slice(0, 2048) : null,
       authorization_confirmed: req.body?.authorization_confirmed === true,
     };
+  } else if (action === 'netprobe') {
+    const target = typeof req.body?.target === 'string' ? req.body.target.trim() : '';
+    const ports = Array.isArray(req.body?.ports) ? req.body.ports.map(Number).filter(Number.isInteger) : undefined;
+    if (!target || target.length > 253) return json(res, 400, { error: 'target is required and must be 253 characters or fewer' });
+    if (ports && (ports.length < 1 || ports.length > 20 || ports.some(p => p < 1 || p > 65535))) return json(res, 400, { error: 'ports must contain 1-20 integers between 1 and 65535' });
+    body = { target, authorization_confirmed: req.body?.authorization_confirmed === true };
+    if (ports) body.ports = ports;
+  } else if (action === 'webprobe') {
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+    if (!url || url.length > 2048) return json(res, 400, { error: 'url is required and must be 2048 characters or fewer' });
+    body = { url, authorization_confirmed: req.body?.authorization_confirmed === true };
   }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55000);
-
   try {
     const headers = { Accept: 'application/json' };
     if (route.protected) headers.Authorization = `Bearer ${apiKey}`;
     if (body) headers['Content-Type'] = 'application/json';
-
     const upstream = await fetch(`${workerUrl}${route.path}`, {
       method: route.method,
       headers,
@@ -126,14 +122,10 @@ export default async function handler(req, res) {
       signal: controller.signal,
       redirect: 'error',
     });
-
-    const payload = await readJsonResponse(upstream);
-    return json(res, upstream.status, payload);
+    return json(res, upstream.status, await readJsonResponse(upstream));
   } catch (error) {
     const timedOut = error?.name === 'AbortError';
-    return json(res, timedOut ? 504 : 502, {
-      error: timedOut ? 'Worker timed out while waking or processing the request' : 'Worker request failed',
-    });
+    return json(res, timedOut ? 504 : 502, { error: timedOut ? 'Worker timed out while waking or processing the request' : 'Worker request failed' });
   } finally {
     clearTimeout(timeout);
   }
