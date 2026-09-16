@@ -90,6 +90,7 @@ export default async function handler(req, res) {
   const primaryUrl = cleanBaseUrl(process.env.WATCHDOG_WORKER_URL, DEFAULT_PRIMARY_WORKER_URL);
   const fallbackUrl = cleanBaseUrl(process.env.WATCHDOG_FALLBACK_WORKER_URL, DEFAULT_FALLBACK_WORKER_URL);
   const apiKey = String(process.env.WATCHDOG_WORKER_API_KEY || '').trim();
+  const fallbackApiKey = String(process.env.WATCHDOG_FALLBACK_WORKER_API_KEY || apiKey).trim();
 
   const routes = {
     health: { method: 'GET', path: '/health', protected: false },
@@ -133,8 +134,9 @@ export default async function handler(req, res) {
       primary: backendSummary(primary),
       fallback: fallback ? backendSummary(fallback) : { same_as_primary: true },
       failover_enabled: primaryUrl !== fallbackUrl,
+      fallback_credential_present: Boolean(fallbackApiKey),
       note: fallbackHealthy && fallback?.data?.api_key_configured === false
-        ? 'Fallback health is online, but protected failover actions require WATCHDOG_WORKER_API_KEY to also be configured on the fallback worker project.'
+        ? 'Fallback health is online, but protected failover actions require WATCHDOG_WORKER_API_KEY on the fallback worker project and WATCHDOG_FALLBACK_WORKER_API_KEY on the main WatchDog project.'
         : null,
     });
   }
@@ -209,7 +211,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const fallback = await fetchWorker(fallbackUrl, route, body, apiKey, 20000);
+  const fallback = await fetchWorker(fallbackUrl, route, body, fallbackApiKey, 20000);
   if (fallback.ok || !shouldFailOver(fallback)) {
     return json(res, fallback.status, {
       ...fallback.data,
