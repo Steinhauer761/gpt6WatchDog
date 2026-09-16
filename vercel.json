@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
-      "destination": "/app.html"
+      "destination": "/app.html",
+      "permanent": false
     }
   ]
 }
