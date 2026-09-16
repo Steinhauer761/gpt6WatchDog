@@ -1,4 +1,5 @@
-const DEFAULT_WORKER_URL = 'https://gpt6watchdog-2.onrender.com';
+const DEFAULT_PRIMARY_WORKER_URL = 'https://gpt6watchdog-2.onrender.com';
+const DEFAULT_FALLBACK_WORKER_URL = 'https://worker-one-iota.vercel.app';
 
 export const config = { maxDuration: 60 };
 
@@ -8,14 +9,14 @@ function json(res, status, body) {
   return res.status(status).json(body);
 }
 
-function cleanBaseUrl(value) {
-  const raw = String(value || DEFAULT_WORKER_URL).trim();
+function cleanBaseUrl(value, fallback) {
+  const raw = String(value || fallback).trim();
   try {
     const url = new URL(raw);
-    if (url.protocol !== 'https:') return DEFAULT_WORKER_URL;
+    if (url.protocol !== 'https:') return fallback;
     return url.origin;
   } catch {
-    return DEFAULT_WORKER_URL;
+    return fallback;
   }
 }
 
@@ -26,9 +27,68 @@ async function readJsonResponse(response) {
   catch { return { detail: text.slice(0, 4000) }; }
 }
 
+async function fetchWorker(baseUrl, route, body, apiKey, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const headers = { Accept: 'application/json' };
+    if (route.protected && apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    if (body) headers['Content-Type'] = 'application/json';
+
+    const response = await fetch(`${baseUrl}${route.path}`, {
+      method: route.method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+      redirect: 'error',
+    });
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data: await readJsonResponse(response),
+      timedOut: false,
+      networkError: false,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: error?.name === 'AbortError' ? 504 : 502,
+      data: {
+        error: error?.name === 'AbortError'
+          ? 'Worker timed out while waking or processing the request'
+          : 'Worker request failed',
+      },
+      timedOut: error?.name === 'AbortError',
+      networkError: true,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function shouldFailOver(result) {
+  return result.networkError || [500, 502, 503, 504].includes(result.status);
+}
+
+function backendSummary(result) {
+  return {
+    reachable: !result.networkError,
+    status_code: result.status,
+    status: result.data?.status || null,
+    service: result.data?.service || null,
+    version: result.data?.version || null,
+    api_key_configured: typeof result.data?.api_key_configured === 'boolean'
+      ? result.data.api_key_configured
+      : null,
+    tools: result.data?.tools || null,
+  };
+}
+
 export default async function handler(req, res) {
   const action = String(req.query.action || '').trim().toLowerCase();
-  const workerUrl = cleanBaseUrl(process.env.WATCHDOG_WORKER_URL);
+  const primaryUrl = cleanBaseUrl(process.env.WATCHDOG_WORKER_URL, DEFAULT_PRIMARY_WORKER_URL);
+  const fallbackUrl = cleanBaseUrl(process.env.WATCHDOG_FALLBACK_WORKER_URL, DEFAULT_FALLBACK_WORKER_URL);
   const apiKey = String(process.env.WATCHDOG_WORKER_API_KEY || '').trim();
 
   const routes = {
@@ -51,8 +111,39 @@ export default async function handler(req, res) {
     res.setHeader('Allow', route.method);
     return json(res, 405, { error: `Use ${route.method} for ${action}` });
   }
+
+  if (action === 'health') {
+    const [primary, fallback] = await Promise.all([
+      fetchWorker(primaryUrl, route, null, '', 8000),
+      primaryUrl === fallbackUrl
+        ? Promise.resolve(null)
+        : fetchWorker(fallbackUrl, route, null, '', 8000),
+    ]);
+
+    const primaryHealthy = primary?.ok && primary?.data?.status === 'ok';
+    const fallbackHealthy = fallback?.ok && fallback?.data?.status === 'ok';
+    const active = primaryHealthy ? 'primary' : (fallbackHealthy ? 'fallback' : 'none');
+    const activeData = active === 'primary' ? primary.data : (active === 'fallback' ? fallback.data : {});
+
+    return json(res, active === 'none' ? 503 : 200, {
+      status: active === 'none' ? 'degraded' : 'ok',
+      service: 'watchdog-worker-bridge',
+      version: activeData?.version || null,
+      active_backend: active,
+      primary: backendSummary(primary),
+      fallback: fallback ? backendSummary(fallback) : { same_as_primary: true },
+      failover_enabled: primaryUrl !== fallbackUrl,
+      note: fallbackHealthy && fallback?.data?.api_key_configured === false
+        ? 'Fallback health is online, but protected failover actions require WATCHDOG_WORKER_API_KEY to also be configured on the fallback worker project.'
+        : null,
+    });
+  }
+
   if (route.protected && !apiKey) {
-    return json(res, 503, { error: 'Worker bridge is not configured', detail: 'WATCHDOG_WORKER_API_KEY is missing from the Vercel environment.' });
+    return json(res, 503, {
+      error: 'Worker bridge is not configured',
+      detail: 'WATCHDOG_WORKER_API_KEY is missing from the main Vercel environment.',
+    });
   }
 
   let body;
@@ -109,24 +200,31 @@ export default async function handler(req, res) {
     body = { url, authorization_confirmed: req.body?.authorization_confirmed === true };
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55000);
-  try {
-    const headers = { Accept: 'application/json' };
-    if (route.protected) headers.Authorization = `Bearer ${apiKey}`;
-    if (body) headers['Content-Type'] = 'application/json';
-    const upstream = await fetch(`${workerUrl}${route.path}`, {
-      method: route.method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
-      redirect: 'error',
+  const primary = await fetchWorker(primaryUrl, route, body, apiKey, 32000);
+  if (!shouldFailOver(primary) || primaryUrl === fallbackUrl) {
+    return json(res, primary.status, {
+      ...primary.data,
+      _watchdog_backend: 'primary',
+      _watchdog_failover_used: false,
     });
-    return json(res, upstream.status, await readJsonResponse(upstream));
-  } catch (error) {
-    const timedOut = error?.name === 'AbortError';
-    return json(res, timedOut ? 504 : 502, { error: timedOut ? 'Worker timed out while waking or processing the request' : 'Worker request failed' });
-  } finally {
-    clearTimeout(timeout);
   }
+
+  const fallback = await fetchWorker(fallbackUrl, route, body, apiKey, 20000);
+  if (fallback.ok || !shouldFailOver(fallback)) {
+    return json(res, fallback.status, {
+      ...fallback.data,
+      _watchdog_backend: 'fallback',
+      _watchdog_failover_used: true,
+      _watchdog_primary_status: primary.status,
+    });
+  }
+
+  return json(res, fallback.status || primary.status || 502, {
+    ...fallback.data,
+    _watchdog_backend: 'fallback',
+    _watchdog_failover_used: true,
+    _watchdog_primary_status: primary.status,
+    _watchdog_fallback_status: fallback.status,
+    detail: fallback.data?.detail || fallback.data?.error || primary.data?.detail || primary.data?.error || 'Both worker backends failed',
+  });
 }
