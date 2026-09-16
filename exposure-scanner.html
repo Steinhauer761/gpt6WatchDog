@@ -45,7 +45,26 @@
 </section>
 
 <section class="card">
-<h2>3. What the Linux Worker Will Scan</h2>
+<h2>3. Web Crawl / Site Intelligence</h2>
+<div class="note">Crawl a public website through the Linux worker. The crawl is limited to the same hostname, respects robots.txt, blocks local/private network targets, does not follow redirects, and caps depth/pages to avoid crawler traps.</div>
+<div class="grid two">
+<div>
+<label>Public website URL</label>
+<input id="crawlUrl" placeholder="https://example.com">
+</div>
+<div>
+<label>Maximum pages</label>
+<select id="crawlPages"><option value="5">5</option><option value="12" selected>12</option><option value="20">20</option><option value="25">25</option></select>
+<label>Depth</label>
+<select id="crawlDepth"><option value="0">0 — starting page only</option><option value="1" selected>1 — linked pages</option><option value="2">2 — deeper crawl</option></select>
+</div>
+</div>
+<button class="cyan" id="crawl">Run Site Intelligence Crawl</button>
+<div id="crawlOut" class="output"></div>
+</section>
+
+<section class="card">
+<h2>4. What the Linux Worker Will Scan</h2>
 <div class="grid three">
 <div class="mini"><strong>Public web</strong><p>Search-engine results, indexed pages, public documents, forums, news, public social profiles, public code and cached references.</p></div>
 <div class="mini"><strong>Username footprint</strong><p>Sherlock-style username discovery plus spelling/handle variants and cross-platform correlation.</p></div>
@@ -59,7 +78,7 @@
 </section>
 
 <section class="card">
-<h2>4. Result Classes</h2>
+<h2>5. Result Classes</h2>
 <div class="grid two">
 <div class="mini"><strong style="color:var(--green)">Exact</strong><p>Identifier matches exactly and is supported by contextual evidence.</p></div>
 <div class="mini"><strong style="color:var(--cyan)">Likely</strong><p>Strong overlap across multiple independent public signals, but identity is not proven.</p></div>
@@ -74,9 +93,10 @@ const $=id=>document.getElementById(id);
 function clean(v){return v.trim()}
 function variants(kind,v){const out=new Set([v]);if(kind==='username'||kind==='alias'){out.add(v.replace(/[._-]/g,''));out.add(v.replace(/[._-]/g,'_'));out.add(v.replace(/[._-]/g,'.'));}if(kind==='phone'){const d=v.replace(/\D/g,'');if(d){out.add(d);if(d.length===10){out.add(`+1${d}`);out.add(`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`);out.add(`${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`)}}}if(kind==='name'){out.add(v.replace(/\s+/g,' '));}return [...out].filter(Boolean)}
 function q(s){return encodeURIComponent('"'+s+'"')}
-$('build').onclick=()=>{const kind=$('kind').value,v=clean($('value').value);if(!v)return alert('Enter an identifier first.');const vs=variants(kind,v);const plan={identifier_type:kind,identifier:v,variants:vs,scope:$('scope').value,context:clean($('context').value)||null,scan_layers:['exact public-web search','variant web search','public documents','public social/profile references','public code/repositories','scam/reporting references','Tor search indexes','reachable public onion mentions','cross-source correlation'],guardrails:['no login bypass','no credential/password retrieval','no private-address harvesting','no private-message access','no claim of 100% coverage'],result_classes:['exact','likely','weak','unverified']};$('plan').style.display='block';$('plan').textContent=JSON.stringify(plan,null,2)};
+$('build').onclick=()=>{const kind=$('kind').value,v=clean($('value').value);if(!v)return alert('Enter an identifier first.');const vs=variants(kind,v);const plan={identifier_type:kind,identifier:v,variants:vs,scope:$('scope').value,context:clean($('context').value)||null,scan_layers:['exact public-web search','variant web search','public documents','public social/profile references','public code/repositories','scam/reporting references','bounded public-site crawl','Tor search indexes','reachable public onion mentions','cross-source correlation'],guardrails:['no login bypass','no credential/password retrieval','no private-address harvesting','no private-message access','no claim of 100% coverage'],result_classes:['exact','likely','weak','unverified']};$('plan').style.display='block';$('plan').textContent=JSON.stringify(plan,null,2)};
 $('links').onclick=()=>{const kind=$('kind').value,v=clean($('value').value);if(!v)return alert('Enter an identifier first.');const vs=variants(kind,v);const items=[];for(const x of vs.slice(0,4)){items.push(['Google exact',`https://www.google.com/search?q=${q(x)}`]);items.push(['Bing exact',`https://www.bing.com/search?q=${q(x)}`]);}items.push(['Public documents',`https://www.google.com/search?q=${encodeURIComponent('"'+v+'" (filetype:pdf OR filetype:doc OR filetype:docx OR filetype:xls OR filetype:xlsx)')}`]);items.push(['Reddit mentions',`https://www.google.com/search?q=${encodeURIComponent('"'+v+'" site:reddit.com')}`]);items.push(['GitHub mentions',`https://github.com/search?q=${encodeURIComponent(v)}&type=code`]);items.push(['Ahmia Tor index',`https://ahmia.fi/search/?q=${encodeURIComponent(v)}`]);if(kind==='domain')items.push(['Certificate Transparency',`https://crt.sh/?q=${encodeURIComponent('%25.'+v)}`]);const out=$('linksOut');out.innerHTML=items.map(([n,u])=>`<a class="btn secondary" target="_blank" rel="noopener noreferrer" href="${u}">${n}</a>`).join('');out.style.display='block'};
-$('job').onclick=()=>{const kind=$('kind').value,v=clean($('value').value);if(!v)return alert('Enter an identifier first.');const job={job_type:'universal-exposure-scan',policy:'public-source-and-authorized-research',identifier:{type:kind,value:v,variants:variants(kind,v)},scope:$('scope').value,context:clean($('context').value)||null,worker_modules:['search-engine-aggregation','sherlock-username-discovery','spiderfoot-osint','public-doc-search','public-social-search','github-public-search','dns-rdap-ct-enrichment','scam-report-indexes','tor-ahmia-index','isolated-onion-fetch-public-pages','indicator-extraction','match-correlation'],sensitive_data_rules:{credentials:false,passwords:false,private_messages:false,private_account_access:false,private_address_harvesting:false},report:{rank_matches:true,separate_observed_fact_from_assessment:true,record_source_url_and_timestamp:true,confidence_categories:['exact','likely','weak','unverified'],coverage_note:'No scanner can guarantee complete discovery of private, deleted, unindexed or access-controlled information.'}};$('jobOut').style.display='block';$('jobOut').textContent=JSON.stringify(job,null,2)};
+$('crawl').onclick=async()=>{const url=clean($('crawlUrl').value);if(!url)return alert('Enter a public website URL first.');const out=$('crawlOut');out.style.display='block';out.textContent='Sending bounded crawl to Linux worker…';try{const r=await fetch('/api/worker?action=crawl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,max_pages:Number($('crawlPages').value),max_depth:Number($('crawlDepth').value)})});const data=await r.json();if(!r.ok)throw new Error(data.detail||data.error||`HTTP ${r.status}`);out.textContent=JSON.stringify(data,null,2)}catch(e){out.textContent=`Crawl failed: ${e.message}`}};
+$('job').onclick=()=>{const kind=$('kind').value,v=clean($('value').value);if(!v)return alert('Enter an identifier first.');const job={job_type:'universal-exposure-scan',policy:'public-source-and-authorized-research',identifier:{type:kind,value:v,variants:variants(kind,v)},scope:$('scope').value,context:clean($('context').value)||null,worker_modules:['search-engine-aggregation','sherlock-username-discovery','spiderfoot-osint','bounded-public-site-crawl','public-doc-search','public-social-search','github-public-search','dns-rdap-ct-enrichment','scam-report-indexes','tor-ahmia-index','isolated-onion-fetch-public-pages','indicator-extraction','match-correlation'],sensitive_data_rules:{credentials:false,passwords:false,private_messages:false,private_account_access:false,private_address_harvesting:false},report:{rank_matches:true,separate_observed_fact_from_assessment:true,record_source_url_and_timestamp:true,confidence_categories:['exact','likely','weak','unverified'],coverage_note:'No scanner can guarantee complete discovery of private, deleted, unindexed or access-controlled information.'}};$('jobOut').style.display='block';$('jobOut').textContent=JSON.stringify(job,null,2)};
 </script>
 </body>
 </html>
