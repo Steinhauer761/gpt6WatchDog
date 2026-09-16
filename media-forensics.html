@@ -15,7 +15,7 @@
 <div class="app">
 <header>
 <h1>MEDIA / AUTHENTICITY FORENSICS</h1>
-<div class="sub">Triage images, video, audio, documents and text for inconsistencies, edits, provenance and suspicious patterns. This tool reports signals; it does not prove that content is fake or truthful by itself.</div>
+<div class="sub">Inspect selected files locally for hashes, browser-readable dimensions and dates, and common JPEG metadata. Text checks list claims to review. These signals cannot prove authenticity.</div>
 <div class="top"><a class="btn secondary" href="app.html">← Field Tools</a><span class="pill">LOCAL-FIRST</span></div>
 </header>
 
@@ -25,6 +25,7 @@
 <input id="fileInput" type="file" accept="image/*,video/*,audio/*,.pdf,.txt,.json,.csv,.doc,.docx">
 <button class="cyan" id="scanFile">Run Local Triage</button>
 <video id="videoPreview" controls playsinline></video>
+<audio id="audioPreview" controls style="display:none;width:100%;margin-top:8px"></audio>
 <img id="imagePreview" alt="Selected media preview">
 <div id="fileOutput" class="output"></div>
 </section>
@@ -42,17 +43,9 @@
 </section>
 
 <section class="card">
-<h2>3. Worker-Level Forensics</h2>
-<div class="grid three">
-<div class="mini"><strong>Metadata / Provenance</strong><p>ExifTool, MediaInfo and C2PA checks for timestamps, software tags, device metadata, edit history clues and signed provenance when present.</p></div>
-<div class="mini"><strong>Video / Frame Analysis</strong><p>FFmpeg/FFprobe and OpenCV sampling for codec changes, discontinuities, duplicate frames, unexpected frame-rate shifts and visual edit boundaries.</p></div>
-<div class="mini"><strong>Audio Analysis</strong><p>Inspect codec, sample rate, channel layout, abrupt spectral changes and possible splice boundaries. Audio cues are supporting signals, not proof.</p></div>
-<div class="mini"><strong>Image Analysis</strong><p>Dimensions, compression, metadata, edge/noise inconsistencies, duplicated regions and edit artifacts. Re-saving can erase or create artifacts.</p></div>
-<div class="mini"><strong>Text / Document Analysis</strong><p>Look for contradictory dates, changing names, formatting shifts, impossible timelines, inconsistent terminology and metadata conflicts.</p></div>
-<div class="mini"><strong>AI / Deepfake Signals</strong><p>Use provenance plus multiple model/forensic signals. No single detector should be treated as a definitive deepfake verdict.</p></div>
-</div>
-<button class="secondary" id="makeJob">Prepare Full Worker Analysis Job</button>
-<div id="jobOutput" class="output"></div>
+<h2>3. Save a case note</h2>
+<div class="note">Download the measurements and text indicators as JSON. The selected file stays in your browser and is not included in the download. Full server analysis, C2PA validation, splice detection and deepfake detection are not available.</div>
+<button class="secondary" id="saveReport">Download local report</button>
 </section>
 
 <section class="card">
@@ -64,19 +57,21 @@
 </section>
 </div>
 <script>
-const $=id=>document.getElementById(id);let selectedFile=null,lastLocal={};
+const $=id=>document.getElementById(id);let selectedFile=null,lastLocal={},lastText={},previewUrl=null;
 function show(el,text){el.style.display='block';el.textContent=text}
 async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function fmtBytes(n){if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(2)+' MB'}
 function fileKind(type,name){if(type.startsWith('image/'))return'image';if(type.startsWith('video/'))return'video';if(type.startsWith('audio/'))return'audio';if(/\.pdf$/i.test(name))return'pdf';if(/\.(txt|json|csv)$/i.test(name))return'text';return'document'}
-$('fileInput').onchange=()=>{selectedFile=$('fileInput').files[0]||null;$('videoPreview').style.display='none';$('imagePreview').style.display='none';if(!selectedFile)return;const url=URL.createObjectURL(selectedFile);if(selectedFile.type.startsWith('video/')){const v=$('videoPreview');v.src=url;v.style.display='block'}else if(selectedFile.type.startsWith('image/')){const i=$('imagePreview');i.src=url;i.style.display='block'}};
+$('fileInput').onchange=()=>{selectedFile=$('fileInput').files[0]||null;lastLocal={};for(const id of ['videoPreview','imagePreview','audioPreview'])$(id).style.display='none';if(previewUrl)URL.revokeObjectURL(previewUrl);if(!selectedFile)return;previewUrl=URL.createObjectURL(selectedFile);if(selectedFile.type.startsWith('video/')){const v=$('videoPreview');v.src=previewUrl;v.style.display='block'}else if(selectedFile.type.startsWith('image/')){const i=$('imagePreview');i.src=previewUrl;i.style.display='block'}else if(selectedFile.type.startsWith('audio/')){const a=$('audioPreview');a.src=previewUrl;a.style.display='block'}};
+function jpegMetadata(buf){const bytes=new Uint8Array(buf);if(bytes[0]!==255||bytes[1]!==216)return {};let p=2;while(p+4<bytes.length){if(bytes[p]!==255)break;const marker=bytes[p+1],size=(bytes[p+2]<<8)|bytes[p+3];if(size<2||p+2+size>bytes.length)break;if(marker===225&&bytes[p+4]===69&&bytes[p+5]===120&&bytes[p+6]===105&&bytes[p+7]===102){const start=p+10,end=p+2+size,view=new DataView(buf,start,end-start);if(view.byteLength<8)break;const little=view.getUint16(0)===0x4949,read16=o=>view.getUint16(o,little),read32=o=>view.getUint32(o,little);if(read16(2)!==42)break;const tags={0x010f:'camera_make',0x0110:'camera_model',0x0131:'software',0x0132:'modified_time',0x9003:'captured_time',0x9004:'digitized_time'};const out={};function ifd(offset,depth){if(depth>1||offset+2>view.byteLength)return;const n=Math.min(read16(offset),200);for(let j=0;j<n;j++){const e=offset+2+j*12;if(e+12>view.byteLength)break;const tag=read16(e),type=read16(e+2),count=read32(e+4),pos=count<=4?e+8:read32(e+8);if(tag===0x8769&&pos<view.byteLength)ifd(pos,depth+1);if(tags[tag]&&type===2&&count>0&&count<1024&&pos+count<=view.byteLength){out[tags[tag]]=new TextDecoder().decode(new Uint8Array(buf,start+pos,count)).replace(/\0/g,'').trim()}}}ifd(read32(4),0);return out}p+=size+2}return {}}
 $('scanFile').onclick=async()=>{if(!selectedFile)return alert('Choose a file first.');const buf=await selectedFile.arrayBuffer();const kind=fileKind(selectedFile.type,selectedFile.name);const out={name:selectedFile.name,type:selectedFile.type||'unknown',kind,size:selectedFile.size,size_human:fmtBytes(selectedFile.size),last_modified:new Date(selectedFile.lastModified).toISOString(),sha256:await sha256(buf),browser_observations:[]};
 if(kind==='video'){const v=$('videoPreview');await new Promise(r=>{if(v.readyState>=1)return r();v.onloadedmetadata=()=>r()});out.browser_observations.push(`duration_seconds=${Number.isFinite(v.duration)?v.duration.toFixed(3):'unknown'}`);out.browser_observations.push(`video_dimensions=${v.videoWidth}x${v.videoHeight}`)}
-if(kind==='image'){const i=$('imagePreview');await new Promise(r=>{if(i.complete)return r();i.onload=()=>r()});out.browser_observations.push(`image_dimensions=${i.naturalWidth}x${i.naturalHeight}`)}
-out.limitations=['Browser triage does not inspect full EXIF/container metadata.','No local deepfake verdict is produced.','Social-platform transcoding can remove provenance and create artifacts.'];lastLocal=out;show($('fileOutput'),JSON.stringify(out,null,2))};
+if(kind==='image'){const i=$('imagePreview');await new Promise(r=>{if(i.complete)return r();i.onload=()=>r();i.onerror=()=>r()});out.browser_observations.push(`image_dimensions=${i.naturalWidth}x${i.naturalHeight}`);if(selectedFile.type==='image/jpeg')out.jpeg_exif=jpegMetadata(buf)}
+if(kind==='audio'){const a=$('audioPreview');await new Promise(r=>{if(a.readyState>=1)return r();a.onloadedmetadata=()=>r();a.onerror=()=>r()});out.browser_observations.push(`duration_seconds=${Number.isFinite(a.duration)?a.duration.toFixed(3):'unknown'}`)}
+out.limitations=['Only a few common JPEG EXIF fields are parsed; empty metadata does not prove editing.','No codec-level, C2PA, splice or deepfake analysis is performed.','The last-modified date comes from the local file and may change on copy.'];lastLocal=out;show($('fileOutput'),JSON.stringify(out,null,2))};
 function sentences(t){return t.split(/(?<=[.!?])\s+|\n+/).map(s=>s.trim()).filter(Boolean)}
-$('scanText').onclick=()=>{const t=$('textInput').value.trim();if(!t)return alert('Paste some text first.');const ref=$('referenceInput').value.trim();const s=sentences(t);const dates=[...t.matchAll(/\b(?:19|20)\d{2}[-\/]\d{1,2}[-\/]\d{1,2}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+(?:19|20)\d{2}\b/gi)].map(m=>m[0]);const nums=[...t.matchAll(/\b\d+(?:\.\d+)?%?\b/g)].map(m=>m[0]);const hedges=(t.match(/\b(?:maybe|probably|apparently|reportedly|I think|I guess|seems|possibly)\b/gi)||[]).length;const absolutes=(t.match(/\b(?:always|never|definitely|proven|100%|impossible|certainly)\b/gi)||[]).length;const repeated=s.filter((x,i)=>s.indexOf(x)!==i);const result={sentence_count:s.length,dates:[...new Set(dates)],numeric_claims:[...new Set(nums)].slice(0,40),hedging_terms:hedges,absolute_claim_terms:absolutes,duplicate_sentences:[...new Set(repeated)],reference_notes_present:!!ref,review_prompts:['Do dates and sequence agree across the text?','Do names/titles stay consistent?','Do numeric claims change without explanation?','Does the wording switch sharply in tone or terminology?','Do claims conflict with supplied reference notes?'],limitations:'This is structural triage, not a truth detector. External fact-checking requires source verification.'};show($('textOutput'),JSON.stringify(result,null,2))};
-$('makeJob').onclick=()=>{if(!selectedFile)return alert('Choose a file first.');const job={job_type:'media-authenticity-analysis',policy:'defensive-forensics',source:{name:selectedFile.name,mime:selectedFile.type,size:selectedFile.size,sha256:lastLocal.sha256||null},requested_checks:['sha256','exiftool-metadata','mediainfo-container','ffprobe-streams','c2pa-provenance','frame-sampling','duplicate-frame-analysis','scene-cut-discontinuities','audio-discontinuities','document-text-consistency'],reporting:{separate_observation_signal_assessment:true,no_binary_fake_verdict:true,include_limitations:true}};show($('jobOutput'),JSON.stringify(job,null,2))};
+$('scanText').onclick=()=>{const t=$('textInput').value.trim();if(!t)return alert('Paste some text first.');const ref=$('referenceInput').value.trim();const s=sentences(t);const dates=[...t.matchAll(/\b(?:19|20)\d{2}[-\/]\d{1,2}[-\/]\d{1,2}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+(?:19|20)\d{2}\b/gi)].map(m=>m[0]);const nums=[...t.matchAll(/\b\d+(?:\.\d+)?%?\b/g)].map(m=>m[0]);const hedges=(t.match(/\b(?:maybe|probably|apparently|reportedly|I think|I guess|seems|possibly)\b/gi)||[]).length;const absolutes=(t.match(/\b(?:always|never|definitely|proven|100%|impossible|certainly)\b/gi)||[]).length;const repeated=s.filter((x,i)=>s.indexOf(x)!==i);const result={sentence_count:s.length,dates:[...new Set(dates)],numeric_claims:[...new Set(nums)].slice(0,40),hedging_terms:hedges,absolute_claim_terms:absolutes,duplicate_sentences:[...new Set(repeated)],reference_notes_present:!!ref,review_prompts:['Do dates and sequence agree across the text?','Do names/titles stay consistent?','Do numeric claims change without explanation?','Does the wording switch sharply in tone or terminology?','Do claims conflict with supplied reference notes?'],limitations:'This lists claims to review; it does not compare them to facts or detect a lie.'};lastText=result;show($('textOutput'),JSON.stringify(result,null,2))};
+$('saveReport').onclick=()=>{if(!Object.keys(lastLocal).length&&!Object.keys(lastText).length)return alert('Run a file or text check first.');const report={type:'watchdog-local-media-triage',created_at:new Date().toISOString(),file:lastLocal,text_indicators:lastText};const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='watchdog-media-triage.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
 </script>
 </body>
 </html>

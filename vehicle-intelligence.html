@@ -15,15 +15,15 @@
 <div class="app">
 <header>
 <h1>VEHICLE INTELLIGENCE</h1>
-<div class="sub">VIN decoding, plate evidence capture and lawful public-source vehicle research. Plate reads are evidentiary observations, not identity or ownership proof.</div>
+<div class="sub">Free public VIN decoding and on-device plate text reading. A plate reading is an observation, not proof of identity or ownership.</div>
 <div class="top"><a class="btn secondary" href="app.html">← Field Tools</a><span class="pill">EVIDENCE + PUBLIC DATA</span></div>
 </header>
 
 <section class="card">
 <h2>VIN Scanner</h2>
 <div class="grid two">
-<div><label>VIN</label><input id="vin" maxlength="17" placeholder="17-character VIN"><button class="cyan" id="vinCheck">Validate / Prepare Decode</button></div>
-<div><div class="mini"><strong>Worker enrichment</strong><p>Manufacturer, model, year, body/engine fields when publicly decodable, recall/safety references, and case correlation. No private owner lookup.</p></div></div>
+<div><label for="vin">VIN</label><input id="vin" maxlength="17" placeholder="17-character VIN"><button class="cyan" id="vinCheck">Check VIN and decode it</button></div>
+<div><div class="mini"><strong>What you get</strong><p>Local format and check-digit check, then vehicle specifications from the free U.S. NHTSA vPIC service. Some vehicles or fields may be unavailable. Recalls and owner details are not included.</p></div></div>
 </div>
 <div id="vinOut" class="output"></div>
 </section>
@@ -32,37 +32,34 @@
 <h2>License Plate Scanner</h2>
 <div class="grid two">
 <div>
-<label>Plate photo / screenshot</label><input id="plateFile" type="file" accept="image/*">
+<label for="plateFile">Plate photo / screenshot</label><input id="plateFile" type="file" accept="image/*">
 <img id="platePreview" alt="Plate evidence preview">
-<label style="margin-top:10px">Plate text (manual or OCR result)</label><input id="plateText" placeholder="ABC123">
-<label>Jurisdiction</label><input id="jurisdiction" placeholder="Province / state / country if known">
-<button class="cyan" id="plateAnalyze">Preserve / Prepare OCR Job</button>
+<button class="secondary" id="readPlate">Read text from this image on my device</button>
+<div class="note" id="ocrStatus" role="status" aria-live="polite">OCR downloads free language data on first use. It can misread plates; confirm the text yourself.</div>
+<label for="plateText" style="margin-top:10px">Plate text (confirm or edit OCR)</label><input id="plateText" placeholder="ABC123">
+<label for="jurisdiction">Jurisdiction</label><input id="jurisdiction" placeholder="Province / state / country if known">
+<button class="cyan" id="plateAnalyze">Save plate observation as JSON</button>
 </div>
 <div>
-<div class="mini"><strong>What it does</strong><p>Hashes the submitted image, records plate text and jurisdiction, prepares OCR/ALPR analysis on the isolated worker, and links the observation into a case.</p></div>
+<div class="mini"><strong>What it does</strong><p>Reads visible text locally with OCR, lets you correct it, hashes the original image, and downloads a case observation with the time and jurisdiction. The image stays on your device.</p></div>
 <div class="mini" style="margin-top:8px"><strong>What it does not do</strong><p>No private owner database lookup, no hidden home-address lookup, and no continuous location-history tracking of a person or vehicle.</p></div>
 </div>
 </div>
 <div id="plateOut" class="output"></div>
 </section>
 
-<section class="card">
-<h2>Worker Modules</h2>
-<div class="grid three">
-<div class="mini"><strong>OCR / Plate Read</strong><p>Crop enhancement, OCR candidates, confidence values and manual confirmation before saving a plate observation.</p></div>
-<div class="mini"><strong>VIN Decode</strong><p>17-character validation plus publicly available manufacturer/vehicle specification decoding and recall references.</p></div>
-<div class="mini"><strong>Case Correlation</strong><p>Link vehicle observations to timestamps, user-supplied photos, public listings and other case evidence without asserting ownership from a plate alone.</p></div>
-</div>
-</section>
+<section class="card"><h2>Practical limits</h2><div class="note">OCR works best on a clear, tightly cropped photo and can mistake similar characters. NHTSA data describes a vehicle, not its current registration. This page has no private owner lookup, automatic recall check, plate matching, or vehicle tracking.</div></section>
 </div>
 <script>
-const $=id=>document.getElementById(id);let plateFile=null;
+const $=id=>document.getElementById(id);let plateFile=null,ocrResult=null,plateUrl=null;
 async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function cleanVin(v){return v.toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function vinCheckDigit(v){const map={A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};const weights=[8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];let sum=0;for(let i=0;i<17;i++){const c=v[i];const n=/\d/.test(c)?Number(c):map[c];if(n==null)return null;sum+=n*weights[i]}const r=sum%11;return r===10?'X':String(r)}
-$('vinCheck').onclick=()=>{const v=cleanVin($('vin').value);const errors=[];if(v.length!==17)errors.push('VIN must contain 17 characters.');if(/[IOQ]/.test(v))errors.push('VINs do not use I, O or Q.');let check=null,validCheck=null;if(v.length===17&&!/[IOQ]/.test(v)){check=vinCheckDigit(v);validCheck=check===v[8]}const job={job_type:'vehicle-vin-intelligence',vin:v,local_validation:{length_ok:v.length===17,forbidden_letters_ok:!/[IOQ]/.test(v),calculated_check_digit:check,position_9:v[8]||null,check_digit_matches:validCheck},requested_worker_checks:['public-vin-decode','manufacturer-model-year','public-recall-safety-references','case-correlation'],private_owner_lookup:false};$('vinOut').style.display='block';$('vinOut').textContent=(errors.length?('Warnings:\n- '+errors.join('\n- ')+'\n\n'):'')+JSON.stringify(job,null,2)};
-$('plateFile').onchange=()=>{plateFile=$('plateFile').files[0]||null;const img=$('platePreview');img.style.display='none';if(plateFile){img.src=URL.createObjectURL(plateFile);img.style.display='block'}};
-$('plateAnalyze').onclick=async()=>{const text=$('plateText').value.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim();const jurisdiction=$('jurisdiction').value.trim();if(!plateFile&&!text)return alert('Add a plate image or plate text first.');let file=null;if(plateFile){const buf=await plateFile.arrayBuffer();file={name:plateFile.name,type:plateFile.type,size:plateFile.size,sha256:await sha256(buf)}}const job={job_type:'vehicle-plate-evidence',plate_text:text||null,jurisdiction:jurisdiction||null,evidence_file:file,requested_worker_checks:plateFile?['image-enhancement','plate-region-detection','ocr-candidates','ocr-confidence','manual-confirmation']:['normalize-plate-text'],case_rules:{plate_is_observation_not_identity:true,private_owner_lookup:false,private_address_lookup:false,continuous_tracking:false},created_at:new Date().toISOString()};$('plateOut').style.display='block';$('plateOut').textContent=JSON.stringify(job,null,2)};
+$('vinCheck').onclick=async()=>{const v=cleanVin($('vin').value),out=$('vinOut');out.style.display='block';if(v.length!==17||/[IOQ]/.test(v)){out.textContent='Enter a 17-character VIN without I, O or Q.';return}const check=vinCheckDigit(v);out.textContent='Checking free public vehicle data…';try{const r=await fetch('/api/vin?vin='+encodeURIComponent(v));const d=await r.json();if(!r.ok)throw new Error(d.error||'Decode failed');const x=d.decoded;out.textContent=[`VIN: ${v}`,`Check digit: ${check===v[8]?'matches':'does not match (check market rules)'}`,`Make: ${x.Make||'not listed'}`,`Model: ${x.Model||'not listed'}`,`Model year: ${x.ModelYear||'not listed'}`,`Manufacturer: ${x.Manufacturer||'not listed'}`,`Vehicle type: ${x.VehicleType||'not listed'}`,`Body: ${x.BodyClass||'not listed'}`,`Engine cylinders: ${x.EngineCylinders||'not listed'}`,`Fuel: ${x.FuelTypePrimary||'not listed'}`,`Drive: ${x.DriveType||'not listed'}`,`Assembly country: ${x.PlantCountry||'not listed'}`,x.ErrorCode&&x.ErrorCode!=='0'?`Decoder note: ${x.ErrorText||x.ErrorCode}`:'',`Source: ${d.source}. Vehicle specifications only; no owner, title or recall lookup.`].filter(Boolean).join('\n')}catch(e){out.textContent='VIN check: '+e.message+'\nLocal check digit: '+check+'; VIN position 9: '+v[8]}};
+$('plateFile').onchange=()=>{plateFile=$('plateFile').files[0]||null;ocrResult=null;const img=$('platePreview');img.style.display='none';if(plateUrl)URL.revokeObjectURL(plateUrl);if(plateFile){plateUrl=URL.createObjectURL(plateFile);img.src=plateUrl;img.style.display='block'}};
+function loadOCR(){if(window.Tesseract)return Promise.resolve();return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=()=>window.Tesseract?resolve():reject(new Error('OCR did not load'));script.onerror=()=>reject(new Error('OCR download failed; you can type the plate yourself'));document.head.append(script)})}
+$('readPlate').onclick=async()=>{if(!plateFile)return alert('Choose an image first.');const b=$('readPlate'),status=$('ocrStatus');b.disabled=true;status.textContent='Loading OCR, then reading your image locally…';let worker;try{await loadOCR();worker=await Tesseract.createWorker('eng');await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',tessedit_pageseg_mode:Tesseract.PSM.SINGLE_LINE});const {data}=await worker.recognize(plateFile);ocrResult={raw_text:data.text.trim(),confidence:Math.round(data.confidence)};$('plateText').value=data.text.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim();status.textContent=`OCR suggestion (${ocrResult.confidence}% confidence): ${ocrResult.raw_text||'no text found'}. Confirm or edit before saving.`}catch(e){status.textContent=e.message+'; enter the text manually.'}finally{if(worker)await worker.terminate();b.disabled=false}};
+$('plateAnalyze').onclick=async()=>{const value=$('plateText').value.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim(),jurisdiction=$('jurisdiction').value.trim();if(!plateFile&&!value)return alert('Add a plate image or plate text first.');let file=null;if(plateFile){file={name:plateFile.name,type:plateFile.type,size:plateFile.size,sha256:await sha256(await plateFile.arrayBuffer())}}const report={type:'vehicle-plate-observation',plate_text_confirmed:value||null,jurisdiction:jurisdiction||null,ocr_suggestion:ocrResult,evidence_file:file,created_at:new Date().toISOString(),note:'A text observation only; no owner or location identified.'};$('plateOut').style.display='block';$('plateOut').textContent=JSON.stringify(report,null,2);const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='watchdog-plate-observation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
 </script>
 </body>
 </html>
