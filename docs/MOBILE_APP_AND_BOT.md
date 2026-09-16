@@ -89,3 +89,7 @@ The bot can later notify you when:
 - a new high-severity CVE affects an asset in your inventory;
 - a Tor-watch job finds a new match for one of your own monitored identifiers;
 - the worker goes offline.
+
+## Deployment note
+
+Production frontend branch: `feature/security-toolbox-v1`. The Vercel Production environment should track this branch while the toolbox is being validated before merge to `main`.
