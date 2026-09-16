@@ -4,18 +4,21 @@ import importlib.util
 import os
 import re
 import shutil
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from intel import IntelLookupError, lookup_public_ip
+from public_osint import PublicSearchError, search_public_sources
+from tor_research import TOR_SOCKS_PROXY, TorResearchError, fetch_onion_text, search_ahmia
 from web_crawl import PublicUrlError, crawl_public_site
 
 API_KEY = os.environ.get("WATCHDOG_WORKER_API_KEY", "").strip()
 ALLOWED_ORIGINS = [x.strip() for x in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "").split(",") if x.strip()]
 
-app = FastAPI(title="WatchDog Worker API", version="0.2.0")
+app = FastAPI(title="WatchDog Worker API", version="0.3.0")
 
 if ALLOWED_ORIGINS:
     app.add_middleware(
@@ -47,6 +50,25 @@ class SiteCrawlRequest(BaseModel):
     max_depth: int = Field(default=1, ge=0, le=2)
 
 
+class PublicSearchRequest(BaseModel):
+    identifier: str = Field(min_length=1, max_length=320)
+    kind: str = Field(default="name", max_length=32)
+    max_per_source: int = Field(default=6, ge=1, le=10)
+
+
+class TorSearchRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=320)
+    max_results: int = Field(default=12, ge=1, le=25)
+
+
+class TorFetchRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=2048)
+
+
+class IpLookupRequest(BaseModel):
+    ip: str = Field(min_length=2, max_length=64)
+
+
 def require_api_key(authorization: Optional[str] = Header(default=None)):
     if not API_KEY:
         raise HTTPException(status_code=503, detail="Worker API key is not configured")
@@ -63,7 +85,8 @@ def health():
         "ffprobe": bool(shutil.which("ffprobe")),
         "exiftool": bool(shutil.which("exiftool")),
         "tesseract": bool(shutil.which("tesseract")),
-        "tor": bool(shutil.which("tor")),
+        "tor_binary": bool(shutil.which("tor")),
+        "tor_proxy": bool(TOR_SOCKS_PROXY),
         "whois": bool(shutil.which("whois")),
         "crawlee": importlib.util.find_spec("crawlee") is not None,
     }
@@ -82,9 +105,12 @@ def capabilities():
         "passive": [
             "text-indicator-extraction",
             "evidence-hashing",
-            "public-osint-job-validation",
-            "media-forensics-tooling-health",
+            "public-osint-multi-source-search",
             "bounded-public-site-crawl",
+            "ahmia-tor-index-search",
+            "onion-text-fetch-when-tor-proxy-configured",
+            "approximate-public-ip-network-geolocation",
+            "media-forensics-tooling-health",
         ],
         "authorized_only": [
             "network-discovery",
@@ -96,6 +122,7 @@ def capabilities():
             "third-party-firewall-bypass",
             "credential-theft",
             "private-account-access",
+            "precise-person-tracking",
             "live-satellite-commanding",
         ],
     }
@@ -119,15 +146,52 @@ def triage_text(payload: TextTriageRequest):
 @app.post("/v1/crawl/site", dependencies=[Depends(require_api_key)])
 async def crawl_site(payload: SiteCrawlRequest):
     try:
-        return await crawl_public_site(
-            payload.url,
-            max_pages=payload.max_pages,
-            max_depth=payload.max_depth,
-        )
+        return await crawl_public_site(payload.url, max_pages=payload.max_pages, max_depth=payload.max_depth)
     except PublicUrlError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Site crawl failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/osint/search", dependencies=[Depends(require_api_key)])
+async def osint_search(payload: PublicSearchRequest):
+    try:
+        return await search_public_sources(payload.identifier, payload.kind, payload.max_per_source)
+    except PublicSearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Public-source search failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/tor/search", dependencies=[Depends(require_api_key)])
+async def tor_search(payload: TorSearchRequest):
+    try:
+        return await search_ahmia(payload.query, payload.max_results)
+    except TorResearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Tor index search failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/tor/fetch", dependencies=[Depends(require_api_key)])
+async def tor_fetch(payload: TorFetchRequest):
+    try:
+        return await fetch_onion_text(payload.url)
+    except TorResearchError as exc:
+        status = 503 if "TOR_SOCKS_PROXY" in str(exc) else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Onion fetch failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/intel/ip", dependencies=[Depends(require_api_key)])
+async def ip_lookup(payload: IpLookupRequest):
+    try:
+        return await lookup_public_ip(payload.ip)
+    except IntelLookupError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"IP lookup failed: {type(exc).__name__}") from exc
 
 
 @app.post("/v1/jobs/validate", dependencies=[Depends(require_api_key)])
