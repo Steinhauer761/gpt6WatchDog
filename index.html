@@ -1,171 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>Astra Core: Cyber OSINT & Geo Tracer</title>
-    <style>
-        :root {
-            --bg-color: #0b0c10;
-            --card-color: #1f2833;
-            --accent-color: #c5a059;
-            --threat-color: #ff4d4d;
-            --osint-color: #00d2d3;
-            --trace-color: #f1c40f;
-            --text-main: #ffffff;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; }
-        .app-container { max-width: 500px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #2f3e46; }
-        header h1 { font-size: 20px; letter-spacing: 1px; }
-        header p { font-size: 11px; color: var(--accent-color); text-transform: uppercase; margin-top: 5px; }
-        .section-title { font-size: 13px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 12px; letter-spacing: 0.5px; }
-        .control-group { background: var(--card-color); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2c3540; }
-        label { display: block; font-size: 12px; margin-bottom: 6px; color: #a4b0be; }
-        select, input, textarea { width: 100%; background: #151c24; border: 1px solid #34495e; padding: 12px; border-radius: 8px; color: white; font-size: 14px; margin-bottom: 12px; }
-        select:focus, input:focus { border-color: var(--accent-color); outline: none; }
-        .btn { width: 100%; background: var(--accent-color); color: #0b0c10; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 10px; }
-        .btn-threat { background: var(--threat-color); color: white; }
-        .btn-osint { background: var(--osint-color); color: #0b0c10; }
-        .btn-trace { background: var(--trace-color); color: #0b0c10; }
-        .output-box { background: #11161d; border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px; margin-top: 15px; display: none; }
-        .prompt-text { font-size: 13px; line-height: 1.5; color: #dcdde1; background: #090d12; padding: 10px; border-radius: 6px; border: 1px solid #2c3540; word-break: break-word; white-space: pre-wrap; }
-        .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .link-btn { display: block; text-align: center; background: #2f3542; color: white; padding: 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; border: 1px solid #3e4452; }
-    </style>
-</head>
-<body>
-
-<div class="app-container">
-    <header>
-        <h1>ASTRA OPERATIONS CENTER</h1>
-        <p>Studio, Free Country Tracer & OSINT Portal</p>
-    </header>
-
-    <!-- 1. STUDIO COMPONENT -->
-    <div class="control-group">
-        <h2 class="section-title">🎬 Video Asset Prompt Engine</h2>
-        <label for="themeSelect">Atmosphere Theme</label>
-        <select id="themeSelect">
-            <option value="Dark Gothic Luxury Lounge">Dark Gothic Luxury Lounge</option>
-            <option value="Neon Cyberpunk Sanctum">Neon Cyberpunk Sanctum</option>
-        </select>
-        <button class="btn" onclick="generateVideoPrompts()">Compile Video Prompts</button>
-    </div>
-
-    <!-- 2. LIVE COUNTRY GEOLOCATION TRACER -->
-    <div class="control-group" style="border-color: var(--trace-color);">
-        <h2 class="section-title" style="color: var(--trace-color);">🌐 Free Country Origin Tracer</h2>
-        <label for="ipInput">Suspect IP Address</label>
-        <input type="text" id="ipInput" placeholder="Paste IP address here (e.g., 8.8.8.8)...">
-        <button class="btn btn-trace" onclick="traceIPCountry()">Query Country Destination</button>
-    </div>
-
-    <!-- 3. OSINT DEEP FOOTPRINT SEARCH MATRIX -->
-    <div class="control-group" style="border-color: var(--osint-color);">
-        <h2 class="section-title" style="color: var(--osint-color);">🔍 Footprint Audit (Self & Others)</h2>
-        <label for="investigateInput">Target Profile (Full Name, Handle, or Core Text)</label>
-        <input type="text" id="investigateInput" placeholder="Type a name or alias to clean/verify...">
-        <button class="btn btn-osint" onclick="launchOSINTMatrix()">Compile Deep Search Matrix</button>
-    </div>
-
-    <!-- 4. CENTRAL CONSOLE OUTPUT -->
-    <div id="consoleBox" class="output-box">
-        <h2 class="section-title" id="consoleHeader">Console Output</h2>
-        <div id="consoleContent"></div>
-    </div>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070a0f"><link rel="manifest" href="manifest.json"><link rel="icon" href="app-icon.svg" type="image/svg+xml"><title>WatchDog Security Console</title><style>
+:root{--bg:#070a0f;--panel:#101821;--border:#263647;--text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5;--green:#55d68a;--red:#ff7373;--yellow:#f1c40f}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#14202e 0,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}.app{max-width:980px;margin:auto;padding:14px}header{padding:8px 0 14px;border-bottom:1px solid var(--border)}h1{font-size:22px;margin:0 0 6px;letter-spacing:.05em}.sub{color:var(--muted);font-size:11px;line-height:1.5}.status{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.chip{font-size:10px;padding:6px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);background:#0b1118}.chip.ok{color:var(--green)}.chip.bad{color:var(--red)}.nav{display:flex;gap:8px;overflow:auto;padding:11px 0}.nav a{white-space:nowrap;color:var(--cyan);text-decoration:none;font-size:11px;border:1px solid var(--border);border-radius:999px;padding:7px 9px;background:#0b1118}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}.card{background:linear-gradient(180deg,var(--panel),#0a1118);border:1px solid var(--border);border-radius:14px;padding:14px}.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 6px}.desc,.note{font-size:11px;color:var(--muted);line-height:1.45}.note{margin-top:8px}label{display:block;font-size:11px;color:var(--muted);margin:8px 0 5px}input,textarea,select,button{width:100%;border-radius:9px;font-size:13px}input,textarea,select{background:#071018;color:white;border:1px solid #33465c;padding:10px}textarea{min-height:120px;resize:vertical}button{border:0;padding:11px;background:var(--gold);color:#071018;font-weight:800;margin-top:7px;cursor:pointer}.secondary{background:#213142;color:white;border:1px solid #3b4e62}.cyan{background:var(--cyan)}.yellow{background:var(--yellow)}.danger{background:var(--red);color:white}.row{display:grid;grid-template-columns:1fr;gap:7px}@media(min-width:560px){.row.two{grid-template-columns:1fr 1fr}.row.three{grid-template-columns:repeat(3,1fr)}}.check{display:flex;gap:8px;align-items:flex-start;margin-top:9px}.check input{width:auto;margin-top:2px}.check span{font-size:11px;color:#dbe3ec;line-height:1.4}.out{display:none;margin-top:10px;border-left:4px solid var(--gold);background:#070b10;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-word;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.out.show{display:block}.links{display:grid;grid-template-columns:1fr;gap:8px}@media(min-width:560px){.links{grid-template-columns:1fr 1fr}}.link{display:block;text-decoration:none;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px;background:#0a1118}.link b{display:block;color:var(--cyan);font-size:12px;margin-bottom:4px}.link span{font-size:10px;color:var(--muted);line-height:1.35}.result{border-top:1px solid var(--border);padding:7px 0}.result a{color:var(--cyan);word-break:break-all}.small{font-size:10px;color:var(--muted)}
+</style></head><body><main class="app"><header><h1>WATCHDOG SECURITY CONSOLE</h1><div class="sub">Working public-source research, evidence tools, bounded authorized probes, browser hardware access, and secure worker actions.</div><div class="status"><span class="chip" id="workerChip">WORKER: CHECKING</span><span class="chip ok">LOCAL EVIDENCE TOOLS: READY</span><span class="chip">ACTIVE PROBES: AUTHORIZATION REQUIRED</span><span class="chip">NO HACK-BACK</span></div></header>
+<nav class="nav"><a href="app.html">Field Tools</a><a href="map-intel.html">Address + Street View</a><span>AI off</span><a href="exposure-scanner.html">Exposure Scanner</a><a href="media-forensics.html">Media Forensics</a><a href="vehicle-intelligence.html">Vehicle Tools</a></nav>
+<div class="grid two">
+<section class="card"><h2>Authorized Scope & Probes</h2><div class="desc">Run bounded checks against one public host or URL you own or are explicitly authorized to assess.</div><label>Hostname or public IP</label><input id="scopeTarget" placeholder="example.com"><label>Web URL</label><input id="scopeUrl" placeholder="https://example.com"><label>Ports (1-20)</label><input id="scopePorts" value="22,53,80,443,445,3389,8080"><div class="check"><input id="authConfirm" type="checkbox"><span>I confirm I own this target or have explicit permission to test it.</span></div><div class="row two"><button id="validateBtn">Validate Scope</button><button class="yellow" id="netProbeBtn">TCP Port Probe</button></div><div class="row two"><button class="cyan" id="webProbeBtn">Web Security Probe</button><button class="secondary" id="crawlBtn">Bounded Site Crawl</button></div><div id="scopeOut" class="out"></div><div class="note">The cloud worker blocks private, loopback, link-local and non-global targets. Probes are single-host and rate-bounded; no stealth, exploitation, credential testing or evasion.</div></section>
+<section class="card"><h2>Public OSINT / Attack Surface</h2><div class="desc">Search public sources for a public identifier. Tor index may be unavailable. Matching names or handles are leads, not identity proof.</div><div class="row two"><select id="osintKind"><option value="domain">Domain</option><option value="username">Username</option><option value="name">Name</option><option value="alias">Alias</option><option value="email">Email</option><option value="phone">Phone</option></select><input id="osintValue" placeholder="example.com or public identifier"></div><div class="row two"><button id="osintBtn">Search Public Sources</button><button class="secondary" id="torBtn">Search Tor Index</button></div><div id="osintOut" class="out"></div></section>
+<section class="card"><h2>Incident / Evidence Triage</h2><div class="desc">Extract indicators and hash evidence through the protected worker.</div><textarea id="triageText" placeholder="Paste a suspicious message, URL, email header, log line or other text..."></textarea><div class="row two"><button id="triageBtn">Analyze Evidence</button><button class="secondary" id="downloadTriage">Download Report</button></div><div id="triageOut" class="out"></div></section>
+<section class="card"><h2>IP / Network Intelligence</h2><div class="desc">Approximate public network geography and ASN context. This does not identify a person's exact physical location.</div><input id="ipInput" placeholder="8.8.8.8"><button id="ipBtn">Look Up Public IP</button><div id="ipOut" class="out"></div></section>
+<section class="card"><h2>Phone Hardware Tools</h2><div class="desc">Use browser-supported hardware APIs directly on your Android device. Availability depends on Chrome and the phone hardware.</div><div class="row two"><button id="nfcBtn">Read NFC Tag</button><button class="secondary" id="bleBtn">Choose Bluetooth Device</button></div><div id="hardwareOut" class="out"></div><div class="note">NFC uses Web NFC for NDEF-compatible tags. Bluetooth opens the browser's device chooser; it does not bypass pairing or device permissions.</div></section>
+<section class="card"><h2>Worker Capabilities</h2><div class="desc">See exactly what the current backend can do instead of showing non-functional staged cards.</div><button id="capBtn">Refresh Capabilities</button><div id="capOut" class="out"></div></section>
 </div>
-
-<script>
-    function escapeHtml(value) {
-        return value.replace(/[&<>'"]/g, (char) => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        })[char]);
-    }
-
-    function generateVideoPrompts() {
-        const theme = document.getElementById('themeSelect').value;
-        const out = document.getElementById('consoleBox');
-        out.style.borderLeftColor = 'var(--accent-color)';
-        document.getElementById('consoleHeader').innerText = "🎬 Generated Video Prompts";
-        
-        document.getElementById('consoleContent').innerHTML = `
-            <div class="prompt-text"><strong>Scene 1 Prompt:</strong> Cinematic photorealistic opening shot, 8k resolution, ${escapeHtml(theme)} aesthetic. Heavy driving industrial beat sync cuts. Camera pans slowly.</div>
-        `;
-        out.style.display = 'block';
-        out.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    async function traceIPCountry() {
-        const ip = document.getElementById('ipInput').value.trim();
-        if(!ip) { alert("Please input an IP address to trace!"); return; }
-
-        const out = document.getElementById('consoleBox');
-        out.style.borderLeftColor = 'var(--trace-color)';
-        document.getElementById('consoleHeader').innerText = "🌐 IP Geolocation Network Analysis";
-        document.getElementById('consoleContent').innerHTML = "<p>Analyzing carrier data packages...</p>";
-        out.style.display = 'block';
-
-        try {
-            const response = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json`);
-            const data = await response.json();
-
-            if(!response.ok || data.error || !data.country) {
-                document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Trace Routing Failed: Verify that the IP string format is valid or try again later.</div>`;
-                return;
-            }
-
-            document.getElementById('consoleContent').innerHTML = `
-                <div class="prompt-text">
-<strong>[ROUTING STATUS]</strong>: HANDSHAKE SUCCESSFUL
-<strong>[RESOLVED COUNTRY]</strong>: ${escapeHtml(String(data.country))}
-<strong>[REGIONAL ZONE]</strong>: ${escapeHtml(String(data.region || 'UNMAPPED'))}
-<strong>[NETWORK OWNER (ASN)]</strong>: ${escapeHtml(String(data.org || 'UNTRACKED'))}
-
-<em>Security Note: IP geolocation identifies the apparent network exit point. VPNs, proxies, mobile carriers, hosting providers, and Tor can make that location different from the sender's real location.</em>
-                </div>
-            `;
-        } catch (err) {
-            document.getElementById('consoleContent').innerHTML = `<div class="prompt-text" style="color: var(--threat-color)">Connection Timeout: Network bridge closed.</div>`;
-        }
-        out.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function launchOSINTMatrix() {
-        const query = document.getElementById('investigateInput').value.trim();
-        if(!query) { alert("Please input a footprint verification target name!"); return; }
-
-        const out = document.getElementById('consoleBox');
-        out.style.borderLeftColor = 'var(--osint-color)';
-        document.getElementById('consoleHeader').innerText = "🔎 Deep Footprint Exploration Grid";
-
-        const safeQuery = escapeHtml(query);
-        const dorkQuote = encodeURIComponent(`"${query}"`);
-        const dorkPublicFiles = encodeURIComponent(`"${query}" (filetype:pdf OR filetype:doc OR filetype:docx)`);
-        const dorkSocial = encodeURIComponent(`"${query}" (site:reddit.com OR site:x.com OR site:twitter.com)`);
-        const ahmiaQuery = encodeURIComponent(query);
-
-        document.getElementById('consoleContent').innerHTML = `
-            <p style="font-size: 12px; margin-bottom: 12px; line-height: 1.4;">Active Parameters for: <strong>${safeQuery}</strong>. Select a search pathway for public mentions, indexed files, social posts, or Tor-indexed onion results:</p>
-            
-            <div class="link-grid">
-                <a class="link-btn" href="https://www.google.com/search?q=${dorkQuote}" target="_blank" rel="noopener noreferrer">Exact Target Search 🚀</a>
-                <a class="link-btn" href="https://www.google.com/search?q=${dorkPublicFiles}" target="_blank" rel="noopener noreferrer">Public Document Index</a>
-                <a class="link-btn" href="https://www.google.com/search?q=${dorkSocial}" target="_blank" rel="noopener noreferrer">Social Mention Search</a>
-                <a class="link-btn" href="https://ahmia.fi/search/?q=${ahmiaQuery}" target="_blank" rel="noopener noreferrer">Tor / Onion Index</a>
-                <a class="link-btn" href="https://osintframework.com" target="_blank" rel="noopener noreferrer">OSINT Global Matrix</a>
-            </div>
-        `;
-        out.style.display = 'block';
-        out.scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
-
-</body>
-</html>
+<section class="card" style="margin-top:12px"><h2>Specialized Tools</h2><div class="links"><a class="link" href="map-intel.html"><b>Global Map + Address / Street View</b><span>Address and place finder, Google Street View handoff, IP map and satellite tracker.</span></a><a class="link" href="exposure-scanner.html"><b>Exposure Scanner</b><span>Multi-source public OSINT and bounded public crawl; Tor needs external service support.</span></a><a class="link" href="media-forensics.html"><b>Media Forensics</b><span>Local file hashing, common JPEG tags and text indicator triage.</span></a><a class="link" href="vehicle-intelligence.html"><b>Vehicle Intelligence</b><span>VIN validation, plate-photo evidence workflow and public vehicle data.</span></a><a class="link" href="privacy.html"><b>Privacy / OPSEC</b><span>Research compartmentation and metadata/privacy checks.</span></a></div></section>
+</main><script>
+const $=id=>document.getElementById(id);let lastTriage=null;
+function show(id,value,color='var(--gold)'){const el=$(id);el.classList.add('show');el.style.borderLeftColor=color;el.textContent=typeof value==='string'?value:JSON.stringify(value,null,2)}
+async function worker(action,body=null,method='POST'){const options={method,headers:{}};if(body!==null){options.headers['Content-Type']='application/json';options.body=JSON.stringify(body)}const r=await fetch('/api/worker?action='+encodeURIComponent(action),options);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||d.error||`HTTP ${r.status}`);return d}
+function authorized(){return $('authConfirm').checked}
+function parsePorts(){const ports=[...new Set($('scopePorts').value.split(',').map(v=>Number(v.trim())).filter(Number.isInteger))];if(!ports.length||ports.length>20||ports.some(p=>p<1||p>65535))throw new Error('Enter 1-20 valid ports between 1 and 65535.');return ports}
+function scopeUrl(){let url=$('scopeUrl').value.trim();if(!url){const t=$('scopeTarget').value.trim();if(t)url='https://'+t}return url}
+$('validateBtn').onclick=async()=>{const target=$('scopeTarget').value.trim();if(!target)return show('scopeOut','Enter a target first.','var(--red)');show('scopeOut','Validating scope…');try{show('scopeOut',await worker('validate',{job_type:'network-discovery',target,authorization_confirmed:authorized()}),'var(--green)')}catch(e){show('scopeOut','Scope validation failed: '+e.message,'var(--red)')}};
+$('netProbeBtn').onclick=async()=>{const target=$('scopeTarget').value.trim();if(!target)return show('scopeOut','Enter a hostname or public IP first.','var(--red)');if(!authorized())return show('scopeOut','Check the authorization box before running an active probe.','var(--red)');let ports;try{ports=parsePorts()}catch(e){return show('scopeOut',e.message,'var(--red)')}show('scopeOut','Running bounded TCP connect probe…','var(--yellow)');try{show('scopeOut',await worker('netprobe',{target,ports,authorization_confirmed:true}),'var(--green)')}catch(e){show('scopeOut','Port probe failed: '+e.message,'var(--red)')}};
+$('webProbeBtn').onclick=async()=>{const url=scopeUrl();if(!url)return show('scopeOut','Enter a web URL or target first.','var(--red)');if(!authorized())return show('scopeOut','Check the authorization box before running an active probe.','var(--red)');show('scopeOut','Checking response security headers…','var(--yellow)');try{show('scopeOut',await worker('webprobe',{url,authorization_confirmed:true}),'var(--green)')}catch(e){show('scopeOut','Web security probe failed: '+e.message,'var(--red)')}};
+$('crawlBtn').onclick=async()=>{const url=scopeUrl();if(!url)return show('scopeOut','Enter a public web URL first.','var(--red)');show('scopeOut','Crawling up to 10 public pages…','var(--cyan)');try{show('scopeOut',await worker('crawl',{url,max_pages:10,max_depth:1}),'var(--green)')}catch(e){show('scopeOut','Crawl failed: '+e.message,'var(--red)')}};
+function renderResults(id,d){const out=$(id);out.classList.add('show');out.innerHTML='';const head=document.createElement('div');head.textContent=`${d.result_count??d.count??(d.results||[]).length} result(s)`;out.appendChild(head);for(const item of (d.results||[]).slice(0,20)){const box=document.createElement('div');box.className='result';const title=document.createElement('div');title.textContent=item.title||item.source||item.url||'Result';box.appendChild(title);if(item.url){const a=document.createElement('a');a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=item.url;box.appendChild(a)}if(item.snippet){const s=document.createElement('div');s.className='small';s.textContent=item.snippet.slice(0,300);box.appendChild(s)}out.appendChild(box)}}
+$('osintBtn').onclick=async()=>{const identifier=$('osintValue').value.trim(),kind=$('osintKind').value;if(!identifier)return;show('osintOut','Searching public sources…','var(--cyan)');try{const d=await worker('osint',{identifier,kind,max_per_source:6});renderResults('osintOut',d)}catch(e){show('osintOut','OSINT search failed: '+e.message,'var(--red)')}};
+$('torBtn').onclick=async()=>{const query=$('osintValue').value.trim();if(!query)return;show('osintOut','Searching Tor index…','var(--cyan)');try{const d=await worker('torsearch',{query,max_results:12});renderResults('osintOut',d)}catch(e){show('osintOut','Tor index search failed: '+e.message,'var(--red)')}};
+$('triageBtn').onclick=async()=>{const text=$('triageText').value.trim();if(!text)return;show('triageOut','Analyzing evidence…','var(--cyan)');try{lastTriage=await worker('triage',{text});show('triageOut',lastTriage,'var(--green)')}catch(e){show('triageOut','Triage failed: '+e.message,'var(--red)')}};
+$('downloadTriage').onclick=()=>{if(!lastTriage)return show('triageOut','Analyze evidence first.','var(--red)');const blob=new Blob([JSON.stringify(lastTriage,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`watchdog-triage-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('ipBtn').onclick=async()=>{const ip=$('ipInput').value.trim();if(!ip)return;show('ipOut','Looking up network metadata…','var(--yellow)');try{show('ipOut',await worker('ip',{ip}),'var(--green)')}catch(e){show('ipOut','IP lookup failed: '+e.message,'var(--red)')}};
+$('nfcBtn').onclick=async()=>{if(!('NDEFReader'in window))return show('hardwareOut','Web NFC is not available in this browser. On Android, try current Chrome with NFC enabled.','var(--red)');show('hardwareOut','Hold an NDEF-compatible NFC tag near the phone…','var(--cyan)');try{const reader=new NDEFReader();await reader.scan();reader.onreading=event=>{const records=[];for(const record of event.message.records){let data='';try{data=new TextDecoder(record.encoding||'utf-8').decode(record.data)}catch{data=`${record.data?.byteLength||0} bytes`}records.push({recordType:record.recordType,mediaType:record.mediaType||null,data})}show('hardwareOut',{serialNumber:event.serialNumber||null,records},'var(--green)')};reader.onreadingerror=()=>show('hardwareOut','Tag detected but the browser could not read its NDEF data.','var(--red)')}catch(e){show('hardwareOut','NFC error: '+e.message,'var(--red)')}};
+$('bleBtn').onclick=async()=>{if(!navigator.bluetooth?.requestDevice)return show('hardwareOut','Web Bluetooth is not available in this browser.','var(--red)');try{const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true});show('hardwareOut',{name:device.name||'Unnamed device',id:device.id,connected:device.gatt?.connected===true},'var(--green)')}catch(e){show('hardwareOut','Bluetooth chooser: '+e.message,'var(--red)')}};
+$('capBtn').onclick=async()=>{show('capOut','Checking worker capabilities…','var(--cyan)');try{show('capOut',await worker('capabilities',null,'GET'),'var(--green)')}catch(e){show('capOut','Capability check failed: '+e.message,'var(--red)')}};
+(async()=>{try{if('serviceWorker'in navigator)await navigator.serviceWorker.register('./service-worker.js',{scope:'./'})}catch{}try{const d=await worker('health',null,'GET');const chip=$('workerChip');chip.textContent=`WORKER: ONLINE v${d.version||'?'}`;chip.classList.add('ok')}catch{const chip=$('workerChip');chip.textContent='WORKER: UNAVAILABLE / WAKING';chip.classList.add('bad')}})();
+</script></body></html>

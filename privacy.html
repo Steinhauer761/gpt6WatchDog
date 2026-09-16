@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WatchDog Privacy / OpSec</title>
+  <style>
+    :root{--bg:#080b10;--panel:#111821;--border:#263747;--text:#f5f7fa;--muted:#9ba8b6;--cyan:#1fd5d5;--gold:#c5a059;--red:#ff5c5c;--green:#52d273;--yellow:#f1c40f}
+    *{box-sizing:border-box}body{margin:0;background:#080b10;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:18px}.app{max-width:860px;margin:auto}h1{font-size:22px;margin:0 0 6px}.sub,.note{color:var(--muted);font-size:12px;line-height:1.5}.card{background:linear-gradient(180deg,#111821,#0d131b);border:1px solid var(--border);border-radius:14px;padding:15px;margin-top:14px}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 12px}.grid{display:grid;gap:12px}@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}}label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px}input,textarea{width:100%;background:#091019;border:1px solid #314052;color:white;border-radius:9px;padding:11px;margin-bottom:10px}textarea{min-height:90px}button,a.btn{display:inline-flex;width:100%;justify-content:center;align-items:center;text-decoration:none;border:0;border-radius:9px;padding:12px;margin-top:5px;font-weight:700;font-size:13px;background:var(--cyan);color:#071011;cursor:pointer}.secondary{background:#223040!important;color:#fff!important;border:1px solid #394c61!important}.yellow{background:var(--yellow)!important;color:#111!important}.out{display:none;white-space:pre-wrap;word-break:break-word;background:#070b10;border-left:4px solid var(--cyan);border-radius:8px;padding:12px;margin-top:12px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.chip{display:inline-block;font-size:10px;border:1px solid #3a4d62;border-radius:999px;padding:5px 8px;color:var(--muted);margin:2px 4px 2px 0}.checklist{font-size:13px;line-height:1.55;color:#dce3ea}.checklist li{margin:8px 0}.warn{color:var(--yellow)}
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>WATCHDOG — PRIVACY / OPSEC</h1>
+  <div class="sub">A VPN protects your network path, but websites and apps can still correlate you through logins, cookies, browser fingerprints, metadata, tracking parameters and device identifiers. This page reduces those leaks; it cannot make any device literally untrackable.</div>
+  <div style="margin-top:10px"><span class="chip">ANTI-TRACKING</span><span class="chip">LOCAL ANALYSIS</span><span class="chip">METADATA CLEANUP</span><span class="chip">IDENTITY COMPARTMENTS</span></div>
+
+  <section class="card">
+    <h2>What The Internet Sees</h2>
+    <div class="note">Optional: this contacts ipinfo.io to show the public IP/network currently visible to websites. If your VPN is active, this should normally be the VPN exit network rather than your home connection.</div>
+    <button id="ipCheck" class="yellow">Check Visible IP / Network</button>
+    <div id="ipOut" class="out"></div>
+  </section>
+
+  <section class="card">
+    <h2>Browser Fingerprint Surface</h2>
+    <div class="note">These values are available to ordinary websites and can contribute to fingerprinting when combined. A single value is not usually identifying by itself.</div>
+    <button id="fpCheck">Run Local Fingerprint Audit</button>
+    <div id="fpOut" class="out"></div>
+  </section>
+
+  <section class="card">
+    <h2>WebRTC Exposure Check</h2>
+    <div class="note">Modern browsers often mask local addresses with mDNS, but WebRTC can still reveal network candidate information. This test stays in-browser and reports candidate types rather than claiming to prove anonymity.</div>
+    <button id="rtcCheck">Run WebRTC Check</button>
+    <div id="rtcOut" class="out"></div>
+  </section>
+
+  <section class="card">
+    <h2>Tracking-Link Cleaner</h2>
+    <label for="urlIn">Paste a URL</label>
+    <textarea id="urlIn" placeholder="https://example.com/page?utm_source=...&fbclid=..."></textarea>
+    <button id="cleanUrl">Remove Common Tracking Parameters</button>
+    <div id="urlOut" class="out"></div>
+  </section>
+
+  <section class="card">
+    <h2>Photo Metadata Scrubber</h2>
+    <div class="note">Choose an image. WatchDog redraws it into a fresh canvas and creates a new file, which removes normal EXIF/GPS metadata. The image itself can still reveal visual clues such as faces, street signs or landmarks.</div>
+    <input id="photo" type="file" accept="image/*">
+    <button id="scrub">Create Metadata-Stripped Copy</button>
+    <div id="photoOut" class="out"></div>
+  </section>
+
+  <section class="card">
+    <h2>Identity Compartment Checklist</h2>
+    <ul class="checklist">
+      <li>Use a separate browser profile for investigation work; do not sign into your normal Google, Meta or other personal accounts in that profile.</li>
+      <li>Keep your VPN on before opening the investigation profile, and verify the visible exit IP.</li>
+      <li>For stronger anonymity, use Tor Browser as a separate session rather than stacking random privacy extensions onto your everyday browser.</li>
+      <li>Do not reuse the same username, avatar, recovery email or profile bio between a private investigation identity and your real accounts.</li>
+      <li>Disable location permission for browsers/apps unless you actually need it. Review camera, microphone, Bluetooth and nearby-device permissions too.</li>
+      <li>Strip photo metadata before sharing evidence publicly and crop out unrelated people, addresses and other private information.</li>
+      <li>Avoid opening unknown documents directly on your phone. Preserve them first and analyze copies in an isolated environment.</li>
+      <li>Do not assume Incognito/Private mode provides anonymity; it mainly limits local browsing history.</li>
+    </ul>
+    <div class="note warn">The biggest anonymity failure is identity mixing: logging into a real account, reusing a personal identifier, or sharing a uniquely identifying file can defeat a VPN or Tor session.</div>
+  </section>
+
+  <section class="card">
+    <a class="btn secondary" href="index.html">Back to WatchDog Console</a>
+  </section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function show(el,txt,color='var(--cyan)'){el.style.display='block';el.style.borderLeftColor=color;el.textContent=txt}
+$('ipCheck').onclick=async()=>{show($('ipOut'),'Checking the public network information visible to websites...','var(--yellow)');try{const r=await fetch('https://ipinfo.io/json');const d=await r.json();show($('ipOut'),`Visible IP: ${d.ip||'unknown'}\nNetwork / ASN: ${d.org||'unknown'}\nCountry: ${d.country||'unknown'}\nRegion: ${d.region||'unknown'}\nCity estimate: ${d.city||'unknown'}\n\nIf your VPN is active, verify that the IP/network belongs to the VPN provider or the exit region you selected. Location is an IP/network estimate, not a precise device position.`,'var(--yellow)')}catch(e){show($('ipOut'),'Could not query public IP metadata. '+e.message,'var(--red)')}};
+$('fpCheck').onclick=()=>{const vals={userAgent:navigator.userAgent,platform:navigator.platform||'unknown',languages:navigator.languages||[],timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,screen:`${screen.width}x${screen.height} @ ${window.devicePixelRatio||1}x`,colorDepth:screen.colorDepth,hardwareConcurrency:navigator.hardwareConcurrency||'unknown',deviceMemory:navigator.deviceMemory||'not exposed',maxTouchPoints:navigator.maxTouchPoints||0,cookiesEnabled:navigator.cookieEnabled,doNotTrack:navigator.doNotTrack||'unset',globalPrivacyControl:navigator.globalPrivacyControl===undefined?'not exposed':navigator.globalPrivacyControl};show($('fpOut'),JSON.stringify(vals,null,2)+'\n\nA site can combine these values with fonts, graphics rendering, account logins and behavior to correlate sessions. Tor Browser reduces uniqueness by making many users look more alike.','var(--cyan)')};
+$('rtcCheck').onclick=async()=>{if(!window.RTCPeerConnection)return show($('rtcOut'),'WebRTC is unavailable in this browser.','var(--yellow)');const pc=new RTCPeerConnection({iceServers:[]});const types=new Set(),protocols=new Set();pc.createDataChannel('x');pc.onicecandidate=e=>{if(!e.candidate){pc.close();show($('rtcOut'),`Candidate types observed: ${[...types].join(', ')||'none'}\nProtocols: ${[...protocols].join(', ')||'unknown'}\n\nHost candidates may be masked with mDNS. This check does not prove that every possible WebRTC leak is blocked.`,'var(--cyan)');return}const c=e.candidate.candidate||'';const tm=c.match(/ typ ([a-z]+)/);if(tm)types.add(tm[1]);const pm=c.match(/ UDP | TCP /i);if(pm)protocols.add(pm[0].trim().toUpperCase())};const offer=await pc.createOffer();await pc.setLocalDescription(offer);setTimeout(()=>{try{pc.close()}catch{}},5000)};
+$('cleanUrl').onclick=()=>{try{const u=new URL($('urlIn').value.trim());const exact=['fbclid','gclid','dclid','msclkid','igshid','yclid','vero_id','mkt_tok','mc_cid','mc_eid'];for(const k of [...u.searchParams.keys()]){const low=k.toLowerCase();if(low.startsWith('utm_')||exact.includes(low)||low.startsWith('ga_'))u.searchParams.delete(k)}show($('urlOut'),u.toString(),'var(--green)')}catch(e){show($('urlOut'),'Invalid URL: '+e.message,'var(--red)')}};
+$('scrub').onclick=async()=>{const file=$('photo').files[0];if(!file)return alert('Choose an image first.');try{const img=await createImageBitmap(file);const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);c.toBlob(blob=>{if(!blob)return show($('photoOut'),'Could not create scrubbed image.','var(--red)');const a=document.createElement('a');a.href=URL.createObjectURL(blob);const base=(file.name.replace(/\.[^.]+$/,'')||'image')+'-metadata-stripped.jpg';a.download=base;a.textContent='Download metadata-stripped copy';a.className='btn secondary';$('photoOut').style.display='block';$('photoOut').innerHTML='';$('photoOut').appendChild(document.createTextNode('Fresh pixel-only copy created. EXIF/GPS metadata from the original file is not carried into this JPEG.\n\n'));$('photoOut').appendChild(a);setTimeout(()=>URL.revokeObjectURL(a.href),60000)},'image/jpeg',.94)}catch(e){show($('photoOut'),'Metadata scrub failed: '+e.message,'var(--red)')}};
+</script>
+</body>
+</html>

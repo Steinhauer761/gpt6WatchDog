@@ -1,0 +1,243 @@
+{
+  "version": 4,
+  "policy": {
+    "mode": "defensive-authorized-only",
+    "allow_hack_back": false,
+    "allow_live_satellite_commanding": false,
+    "allow_rf_transmit_to_live_satellites": false,
+    "allow_private_address_harvesting": false,
+    "allow_third_party_firewall_bypass": false,
+    "default_timeout_seconds": 120,
+    "default_max_concurrency": 2,
+    "notes": "External tools are pinned to verified upstream repositories before activation. Active testing is restricted to systems the user owns or is explicitly authorized to assess. Satellite features are passive reception/analysis or simulator/lab-only. Media-forensics results are evidentiary signals rather than binary truth or deepfake verdicts. Address correlation is limited to lawfully accessible public/business/owned records. Firewall testing is limited to owned or explicitly authorized infrastructure and lab environments."
+  },
+  "adapters": [
+    {
+      "id": "privacy-opsec",
+      "category": "privacy",
+      "name": "Privacy / OpSec Self-Audit",
+      "status": "implemented-ui",
+      "runtime": "browser-local",
+      "accepted_targets": ["own-device", "own-browser", "own-file", "own-url"],
+      "purpose": "Visible-IP/VPN checks, browser fingerprint awareness, WebRTC checks, tracking-link cleanup, metadata stripping and identity compartment guidance"
+    },
+    {
+      "id": "impersonation-defense",
+      "category": "social-defense",
+      "name": "Impersonation Defense Case Builder",
+      "status": "implemented-ui",
+      "runtime": "browser-local",
+      "accepted_targets": ["public-profile-url", "username", "public-profile-photo", "public-bio"],
+      "purpose": "Preserve public evidence, compare profile images locally, document inconsistencies and generate a reporting packet without doxxing"
+    },
+    {
+      "id": "public-address-correlation",
+      "category": "osint-correlation",
+      "name": "Public Address Correlation",
+      "status": "staged",
+      "runtime": "browser-local + isolated-worker",
+      "accepted_targets": ["public-business-address", "public-organization-address", "owned-property-record", "publicly-self-disclosed-address", "authorized-case-record"],
+      "purpose": "Correlate lawfully accessible public addresses with organizations, domains, public filings and other sourced records while preserving source URLs, timestamps and confidence levels",
+      "private_address_harvesting": false,
+      "require_source_attribution": true
+    },
+    {
+      "id": "media-forensics-ui",
+      "category": "media-forensics",
+      "name": "Media / Authenticity Forensics",
+      "status": "implemented-ui",
+      "runtime": "browser-local + isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "pdf", "document", "text", "transcript"],
+      "purpose": "Local hashing and first-pass media/text triage, then structured worker analysis for provenance, metadata conflicts, edits, discontinuities and internal inconsistencies",
+      "binary_fake_verdict": false
+    },
+    {
+      "id": "ffmpeg-forensics",
+      "category": "media-forensics",
+      "name": "FFmpeg / FFprobe Media Inspection",
+      "status": "worker-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["video", "audio", "image"],
+      "purpose": "Inspect streams, codecs, timestamps, frame rates, duration, keyframes, scene boundaries and audio/video container structure",
+      "repository": "FFmpeg/FFmpeg"
+    },
+    {
+      "id": "opencv-forensics",
+      "category": "media-forensics",
+      "name": "OpenCV Frame Analysis",
+      "status": "worker-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["video", "image"],
+      "purpose": "Frame sampling, duplicate-frame detection, visual discontinuity analysis and image-region consistency checks",
+      "repository": "opencv/opencv"
+    },
+    {
+      "id": "c2pa-forensics",
+      "category": "media-forensics",
+      "name": "C2PA Content Credentials Check",
+      "status": "worker-staged-pending-upstream-verify",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "document"],
+      "purpose": "Check for signed C2PA provenance/content credentials when present. Absence of credentials is not evidence that content is fake."
+    },
+    {
+      "id": "metadata-forensics",
+      "category": "media-forensics",
+      "name": "Metadata / Container Forensics",
+      "status": "worker-staged-pending-upstream-verify",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["image", "video", "audio", "pdf", "document"],
+      "purpose": "Inspect timestamps, software tags, device fields, dimensions, codec/container metadata and conflicts between metadata sources"
+    },
+    {
+      "id": "sherlock",
+      "category": "social-osint",
+      "name": "Sherlock Username Discovery",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["username", "alias"],
+      "purpose": "Find public accounts using the same username across supported sites for self-audit and impersonation investigations",
+      "repository": "sherlock-project/sherlock",
+      "license": "MIT"
+    },
+    {
+      "id": "osiris",
+      "category": "global-osint",
+      "name": "OSIRIS Global Intelligence",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-service",
+      "accepted_targets": ["public-osint-query", "domain", "ip"],
+      "purpose": "Situational awareness, public data layers, DNS/WHOIS/IP/CVE enrichment and map-based OSINT",
+      "repository": "simplifaisoul/osiris",
+      "license": "MIT"
+    },
+    {
+      "id": "shadowbroker",
+      "category": "global-osint",
+      "name": "Shadowbroker Intelligence Dashboard",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-service",
+      "accepted_targets": ["public-osint-query", "public-feed"],
+      "purpose": "Aggregate public aviation, satellite, CCTV, event and intelligence feeds for situational awareness",
+      "repository": "BigBodyCobain/Shadowbroker",
+      "license": "AGPL-3.0"
+    },
+    {
+      "id": "nmap",
+      "category": "authorized-pentest",
+      "name": "Nmap Network Discovery",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-host", "owned-network", "authorized-host", "authorized-network"],
+      "purpose": "Authorized network inventory, port and service discovery",
+      "repository": "nmap/nmap",
+      "authorization_required": true
+    },
+    {
+      "id": "firewall-assessment",
+      "category": "authorized-pentest",
+      "name": "Authorized Firewall / Segmentation Assessment",
+      "status": "staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-firewall", "owned-network", "authorized-firewall", "authorized-network", "lab-network"],
+      "purpose": "Validate firewall policy enforcement, exposed services, segmentation boundaries, ingress/egress behavior, rule drift and WAF/firewall configuration on owned or explicitly authorized infrastructure",
+      "authorization_required": true,
+      "third_party_bypass": false,
+      "lab_bypass_testing": true,
+      "expected_outputs": ["allowed-vs-blocked-matrix", "unexpected-exposure-report", "segmentation-findings", "egress-findings", "rule-review-notes", "remediation-guidance"]
+    },
+    {
+      "id": "nuclei",
+      "category": "authorized-pentest",
+      "name": "Nuclei Vulnerability Assessment",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-domain", "owned-api", "authorized-domain", "authorized-api"],
+      "purpose": "Template-based vulnerability assessment of authorized applications and infrastructure",
+      "repository": "projectdiscovery/nuclei",
+      "license": "MIT",
+      "authorization_required": true
+    },
+    {
+      "id": "zap",
+      "category": "authorized-pentest",
+      "name": "ZAP Web Application Testing",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-webapp", "authorized-webapp"],
+      "purpose": "Authorized web application security testing and DAST",
+      "repository": "zaproxy/zaproxy",
+      "license": "Apache-2.0",
+      "authorization_required": true
+    },
+    {
+      "id": "crowdsec",
+      "category": "defense",
+      "name": "CrowdSec Detection / Blocking",
+      "status": "verified-upstream-staged",
+      "runtime": "defense-worker",
+      "accepted_targets": ["owned-server-logs", "owned-infrastructure"],
+      "purpose": "Detect abusive behavior and feed block/remediation decisions for owned infrastructure",
+      "repository": "crowdsecurity/crowdsec",
+      "license": "MIT"
+    },
+    {
+      "id": "suricata",
+      "category": "defense",
+      "name": "Suricata IDS / IPS",
+      "status": "verified-upstream-staged",
+      "runtime": "defense-worker",
+      "accepted_targets": ["owned-network-traffic"],
+      "purpose": "Intrusion detection, prevention and network-security monitoring on owned networks",
+      "repository": "OISF/suricata",
+      "license": "GPL-2.0"
+    },
+    {
+      "id": "opencanary",
+      "category": "deception-defense",
+      "name": "OpenCanary Honeypot",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-worker",
+      "accepted_targets": ["owned-infrastructure"],
+      "purpose": "Decoy services and alerts when scanners or intruders touch resources that legitimate users should not access",
+      "repository": "thinkst/opencanary",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "id": "gr-satellites",
+      "category": "satellite-passive",
+      "name": "gr-satellites Telemetry Decoder",
+      "status": "verified-upstream-staged",
+      "runtime": "sdr-lab-worker",
+      "accepted_targets": ["lawfully-received-amateur-satellite-signal", "recorded-iq-file"],
+      "purpose": "Passive demodulation and decoding of supported amateur-satellite telemetry",
+      "repository": "daniestevez/gr-satellites",
+      "license": "GPL-3.0",
+      "transmit": false
+    },
+    {
+      "id": "satdump",
+      "category": "satellite-passive",
+      "name": "SatDump Satellite Data Processing",
+      "status": "verified-upstream-staged",
+      "runtime": "sdr-lab-worker",
+      "accepted_targets": ["lawfully-received-satellite-signal", "recorded-baseband-file"],
+      "purpose": "Passive satellite signal/data processing and decoding",
+      "repository": "SatDump/SatDump",
+      "license": "GPL-3.0",
+      "transmit": false
+    },
+    {
+      "id": "nos3",
+      "category": "satellite-simulator",
+      "name": "NASA NOS3 Space-System Simulator",
+      "status": "verified-upstream-staged",
+      "runtime": "isolated-lab",
+      "accepted_targets": ["simulation", "digital-twin", "lab-protocol-test"],
+      "purpose": "Space-system simulation and safe security experiments against a lab/digital twin rather than live spacecraft",
+      "repository": "nasa/nos3",
+      "authorization_required": false,
+      "live_targeting": false
+    }
+  ]
+}

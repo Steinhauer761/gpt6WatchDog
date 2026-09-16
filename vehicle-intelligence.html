@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a0f">
+<link rel="manifest" href="manifest.json">
+<title>Vehicle Intelligence</title>
+<style>
+:root{--bg:#070a0f;--panel:#101821;--border:#263647;--text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5;--green:#57d57b;--yellow:#f1c40f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#14202e 0,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}.app{max-width:900px;margin:auto;padding:16px 16px 44px}header{padding:8px 0 14px;border-bottom:1px solid var(--border)}h1{font-size:21px;margin:0 0 5px;letter-spacing:.05em}.sub,.note{font-size:11px;line-height:1.5;color:var(--muted)}.card{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#111a24,#0b1118)}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 10px}label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}input,select,textarea{width:100%;background:#080e15;color:white;border:1px solid #33465c;border-radius:9px;padding:11px;font-size:14px;margin-bottom:10px}button,a.btn{width:100%;display:flex;justify-content:center;align-items:center;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:13px;text-decoration:none;cursor:pointer;background:var(--gold);color:#070a0f;margin-top:6px}.secondary{background:#223040!important;color:white!important;border:1px solid #3b4e62!important}.cyan{background:var(--cyan)!important;color:#061113!important}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}.mini{padding:10px;border:1px solid var(--border);border-radius:10px;background:#091019}.mini strong{display:block;font-size:12px;margin-bottom:4px}.mini p{font-size:11px;line-height:1.45;color:var(--muted);margin:0}.output{display:none;margin-top:10px;background:#060a0f;border-left:4px solid var(--gold);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.top{display:flex;gap:8px;margin-top:10px}.top a{flex:1}.pill{font-size:10px;border:1px solid var(--border);padding:5px 7px;border-radius:999px;color:var(--muted)}img{max-width:100%;display:none;border:1px solid var(--border);border-radius:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>VEHICLE INTELLIGENCE</h1>
+<div class="sub">Free public VIN decoding and on-device plate text reading. A plate reading is an observation, not proof of identity or ownership.</div>
+<div class="top"><a class="btn secondary" href="app.html">← Field Tools</a><span class="pill">EVIDENCE + PUBLIC DATA</span></div>
+</header>
+
+<section class="card">
+<h2>VIN Scanner</h2>
+<div class="grid two">
+<div><label for="vin">VIN</label><input id="vin" maxlength="17" placeholder="17-character VIN"><button class="cyan" id="vinCheck">Check VIN and decode it</button></div>
+<div><div class="mini"><strong>What you get</strong><p>Local format and check-digit check, then vehicle specifications from the free U.S. NHTSA vPIC service. Some vehicles or fields may be unavailable. Recalls and owner details are not included.</p></div></div>
+</div>
+<div id="vinOut" class="output"></div>
+</section>
+
+<section class="card">
+<h2>License Plate Scanner</h2>
+<div class="grid two">
+<div>
+<label for="plateFile">Plate photo / screenshot</label><input id="plateFile" type="file" accept="image/*">
+<img id="platePreview" alt="Plate evidence preview">
+<button class="secondary" id="readPlate">Read text from this image on my device</button>
+<div class="note" id="ocrStatus" role="status" aria-live="polite">OCR downloads free language data on first use. It can misread plates; confirm the text yourself.</div>
+<label for="plateText" style="margin-top:10px">Plate text (confirm or edit OCR)</label><input id="plateText" placeholder="ABC123">
+<label for="jurisdiction">Jurisdiction</label><input id="jurisdiction" placeholder="Province / state / country if known">
+<button class="cyan" id="plateAnalyze">Save plate observation as JSON</button>
+</div>
+<div>
+<div class="mini"><strong>What it does</strong><p>Reads visible text locally with OCR, lets you correct it, hashes the original image, and downloads a case observation with the time and jurisdiction. The image stays on your device.</p></div>
+<div class="mini" style="margin-top:8px"><strong>What it does not do</strong><p>No private owner database lookup, no hidden home-address lookup, and no continuous location-history tracking of a person or vehicle.</p></div>
+</div>
+</div>
+<div id="plateOut" class="output"></div>
+</section>
+
+<section class="card"><h2>Practical limits</h2><div class="note">OCR works best on a clear, tightly cropped photo and can mistake similar characters. NHTSA data describes a vehicle, not its current registration. This page has no private owner lookup, automatic recall check, plate matching, or vehicle tracking.</div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id);let plateFile=null,ocrResult=null,plateUrl=null;
+async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function cleanVin(v){return v.toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function vinCheckDigit(v){const map={A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};const weights=[8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];let sum=0;for(let i=0;i<17;i++){const c=v[i];const n=/\d/.test(c)?Number(c):map[c];if(n==null)return null;sum+=n*weights[i]}const r=sum%11;return r===10?'X':String(r)}
+$('vinCheck').onclick=async()=>{const v=cleanVin($('vin').value),out=$('vinOut');out.style.display='block';if(v.length!==17||/[IOQ]/.test(v)){out.textContent='Enter a 17-character VIN without I, O or Q.';return}const check=vinCheckDigit(v);out.textContent='Checking free public vehicle data…';try{const r=await fetch('/api/vin?vin='+encodeURIComponent(v));const d=await r.json();if(!r.ok)throw new Error(d.error||'Decode failed');const x=d.decoded;out.textContent=[`VIN: ${v}`,`Check digit: ${check===v[8]?'matches':'does not match (check market rules)'}`,`Make: ${x.Make||'not listed'}`,`Model: ${x.Model||'not listed'}`,`Model year: ${x.ModelYear||'not listed'}`,`Manufacturer: ${x.Manufacturer||'not listed'}`,`Vehicle type: ${x.VehicleType||'not listed'}`,`Body: ${x.BodyClass||'not listed'}`,`Engine cylinders: ${x.EngineCylinders||'not listed'}`,`Fuel: ${x.FuelTypePrimary||'not listed'}`,`Drive: ${x.DriveType||'not listed'}`,`Assembly country: ${x.PlantCountry||'not listed'}`,x.ErrorCode&&x.ErrorCode!=='0'?`Decoder note: ${x.ErrorText||x.ErrorCode}`:'',`Source: ${d.source}. Vehicle specifications only; no owner, title or recall lookup.`].filter(Boolean).join('\n')}catch(e){out.textContent='VIN check: '+e.message+'\nLocal check digit: '+check+'; VIN position 9: '+v[8]}};
+$('plateFile').onchange=()=>{plateFile=$('plateFile').files[0]||null;ocrResult=null;const img=$('platePreview');img.style.display='none';if(plateUrl)URL.revokeObjectURL(plateUrl);if(plateFile){plateUrl=URL.createObjectURL(plateFile);img.src=plateUrl;img.style.display='block'}};
+function withTimeout(p,ms,message){let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)})]).finally(()=>clearTimeout(timer))}
+function loadOCR(){if(window.Tesseract)return Promise.resolve();return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=()=>window.Tesseract?resolve():reject(new Error('OCR did not load'));script.onerror=()=>reject(new Error('OCR download failed; you can type the plate yourself'));document.head.append(script)})}
+$('readPlate').onclick=async()=>{if(!plateFile)return alert('Choose an image first.');const b=$('readPlate'),status=$('ocrStatus');b.disabled=true;status.textContent='Loading OCR, then reading your image locally…';let worker;try{await withTimeout(loadOCR(),15000,'OCR library download timed out');status.textContent='Preparing OCR language data…';worker=await withTimeout(Tesseract.createWorker('eng'),45000,'OCR language download timed out');await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',tessedit_pageseg_mode:Tesseract.PSM.SINGLE_LINE});const img=$('platePreview');if(img.complete&&!img.naturalWidth)throw new Error('The image preview could not be read');if(!img.complete)await withTimeout(new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('The image preview could not be read'))}),12000,'The image took too long to load');const scale=Math.min(1,1800/img.naturalWidth,1200/img.naturalHeight),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));const ctx=canvas.getContext('2d');ctx.filter='grayscale(1) contrast(1.5)';ctx.drawImage(img,0,0,canvas.width,canvas.height);status.textContent='Reading image locally…';const {data}=await withTimeout(worker.recognize(canvas.toDataURL('image/png')),30000,'OCR reading timed out');ocrResult={raw_text:data.text.trim(),confidence:Math.round(data.confidence)};$('plateText').value=data.text.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim();status.textContent=`OCR suggestion (${ocrResult.confidence}% confidence): ${ocrResult.raw_text||'no text found'}. Confirm or edit before saving.`}catch(e){status.textContent=e.message+'; enter the text manually.'}finally{if(worker)await worker.terminate();b.disabled=false}};
+$('plateAnalyze').onclick=async()=>{const value=$('plateText').value.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim(),jurisdiction=$('jurisdiction').value.trim();if(!plateFile&&!value)return alert('Add a plate image or plate text first.');let file=null;if(plateFile){file={name:plateFile.name,type:plateFile.type,size:plateFile.size,sha256:await sha256(await plateFile.arrayBuffer())}}const report={type:'vehicle-plate-observation',plate_text_confirmed:value||null,jurisdiction:jurisdiction||null,ocr_suggestion:ocrResult,evidence_file:file,created_at:new Date().toISOString(),note:'A text observation only; no owner or location identified.'};$('plateOut').style.display='block';$('plateOut').textContent=JSON.stringify(report,null,2);const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='watchdog-plate-observation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
+</script>
+</body>
+</html>
