@@ -4,6 +4,7 @@ import importlib.util
 import os
 import re
 import shutil
+import sys
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -18,7 +19,7 @@ from web_crawl import PublicUrlError, crawl_public_site
 API_KEY = os.environ.get("WATCHDOG_WORKER_API_KEY", "").strip()
 ALLOWED_ORIGINS = [x.strip() for x in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "").split(",") if x.strip()]
 
-app = FastAPI(title="WatchDog Worker API", version="0.3.0")
+app = FastAPI(title="WatchDog Worker API", version="0.3.1")
 
 if ALLOWED_ORIGINS:
     app.add_middleware(
@@ -79,22 +80,39 @@ def require_api_key(authorization: Optional[str] = Header(default=None)):
 
 @app.get("/health")
 def health():
+    tool_paths = {
+        "nmap": shutil.which("nmap"),
+        "ffmpeg": shutil.which("ffmpeg"),
+        "ffprobe": shutil.which("ffprobe"),
+        "exiftool": shutil.which("exiftool"),
+        "tesseract": shutil.which("tesseract"),
+        "tor": shutil.which("tor"),
+        "whois": shutil.which("whois"),
+    }
     tools = {
-        "nmap": bool(shutil.which("nmap")),
-        "ffmpeg": bool(shutil.which("ffmpeg")),
-        "ffprobe": bool(shutil.which("ffprobe")),
-        "exiftool": bool(shutil.which("exiftool")),
-        "tesseract": bool(shutil.which("tesseract")),
-        "tor_binary": bool(shutil.which("tor")),
+        "nmap": bool(tool_paths["nmap"]),
+        "ffmpeg": bool(tool_paths["ffmpeg"]),
+        "ffprobe": bool(tool_paths["ffprobe"]),
+        "exiftool": bool(tool_paths["exiftool"]),
+        "tesseract": bool(tool_paths["tesseract"]),
+        "tor_binary": bool(tool_paths["tor"]),
         "tor_proxy": bool(TOR_SOCKS_PROXY),
-        "whois": bool(shutil.which("whois")),
+        "whois": bool(tool_paths["whois"]),
         "crawlee": importlib.util.find_spec("crawlee") is not None,
     }
     return {
         "status": "ok",
         "service": "watchdog-worker",
+        "version": "0.3.1",
         "api_key_configured": bool(API_KEY),
         "allowed_origins_configured": bool(ALLOWED_ORIGINS),
+        "runtime": {
+            "docker_detected": os.path.exists("/.dockerenv"),
+            "python": sys.version.split()[0],
+            "cwd": os.getcwd(),
+            "tool_paths": tool_paths,
+            "tor_proxy_configured": bool(TOR_SOCKS_PROXY),
+        },
         "tools": tools,
     }
 
