@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a0f">
+<link rel="manifest" href="manifest.json">
+<title>Vehicle Intelligence</title>
+<style>
+:root{--bg:#070a0f;--panel:#101821;--border:#263647;--text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5;--green:#57d57b;--yellow:#f1c40f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#14202e 0,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}.app{max-width:900px;margin:auto;padding:16px 16px 44px}header{padding:8px 0 14px;border-bottom:1px solid var(--border)}h1{font-size:21px;margin:0 0 5px;letter-spacing:.05em}.sub,.note{font-size:11px;line-height:1.5;color:var(--muted)}.card{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#111a24,#0b1118)}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 10px}label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}input,select,textarea{width:100%;background:#080e15;color:white;border:1px solid #33465c;border-radius:9px;padding:11px;font-size:14px;margin-bottom:10px}button,a.btn{width:100%;display:flex;justify-content:center;align-items:center;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:13px;text-decoration:none;cursor:pointer;background:var(--gold);color:#070a0f;margin-top:6px}.secondary{background:#223040!important;color:white!important;border:1px solid #3b4e62!important}.cyan{background:var(--cyan)!important;color:#061113!important}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}.mini{padding:10px;border:1px solid var(--border);border-radius:10px;background:#091019}.mini strong{display:block;font-size:12px;margin-bottom:4px}.mini p{font-size:11px;line-height:1.45;color:var(--muted);margin:0}.output{display:none;margin-top:10px;background:#060a0f;border-left:4px solid var(--gold);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.top{display:flex;gap:8px;margin-top:10px}.top a{flex:1}.pill{font-size:10px;border:1px solid var(--border);padding:5px 7px;border-radius:999px;color:var(--muted)}img{max-width:100%;display:none;border:1px solid var(--border);border-radius:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>VEHICLE INTELLIGENCE</h1>
+<div class="sub">VIN decoding, plate evidence capture and lawful public-source vehicle research. Plate reads are evidentiary observations, not identity or ownership proof.</div>
+<div class="top"><a class="btn secondary" href="app.html">← Field Tools</a><span class="pill">EVIDENCE + PUBLIC DATA</span></div>
+</header>
+
+<section class="card">
+<h2>VIN Scanner</h2>
+<div class="grid two">
+<div><label>VIN</label><input id="vin" maxlength="17" placeholder="17-character VIN"><button class="cyan" id="vinCheck">Validate / Prepare Decode</button></div>
+<div><div class="mini"><strong>Worker enrichment</strong><p>Manufacturer, model, year, body/engine fields when publicly decodable, recall/safety references, and case correlation. No private owner lookup.</p></div></div>
+</div>
+<div id="vinOut" class="output"></div>
+</section>
+
+<section class="card">
+<h2>License Plate Scanner</h2>
+<div class="grid two">
+<div>
+<label>Plate photo / screenshot</label><input id="plateFile" type="file" accept="image/*">
+<img id="platePreview" alt="Plate evidence preview">
+<label style="margin-top:10px">Plate text (manual or OCR result)</label><input id="plateText" placeholder="ABC123">
+<label>Jurisdiction</label><input id="jurisdiction" placeholder="Province / state / country if known">
+<button class="cyan" id="plateAnalyze">Preserve / Prepare OCR Job</button>
+</div>
+<div>
+<div class="mini"><strong>What it does</strong><p>Hashes the submitted image, records plate text and jurisdiction, prepares OCR/ALPR analysis on the isolated worker, and links the observation into a case.</p></div>
+<div class="mini" style="margin-top:8px"><strong>What it does not do</strong><p>No private owner database lookup, no hidden home-address lookup, and no continuous location-history tracking of a person or vehicle.</p></div>
+</div>
+</div>
+<div id="plateOut" class="output"></div>
+</section>
+
+<section class="card">
+<h2>Worker Modules</h2>
+<div class="grid three">
+<div class="mini"><strong>OCR / Plate Read</strong><p>Crop enhancement, OCR candidates, confidence values and manual confirmation before saving a plate observation.</p></div>
+<div class="mini"><strong>VIN Decode</strong><p>17-character validation plus publicly available manufacturer/vehicle specification decoding and recall references.</p></div>
+<div class="mini"><strong>Case Correlation</strong><p>Link vehicle observations to timestamps, user-supplied photos, public listings and other case evidence without asserting ownership from a plate alone.</p></div>
+</div>
+</section>
+</div>
+<script>
+const $=id=>document.getElementById(id);let plateFile=null;
+async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function cleanVin(v){return v.toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function vinCheckDigit(v){const map={A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};const weights=[8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];let sum=0;for(let i=0;i<17;i++){const c=v[i];const n=/\d/.test(c)?Number(c):map[c];if(n==null)return null;sum+=n*weights[i]}const r=sum%11;return r===10?'X':String(r)}
+$('vinCheck').onclick=()=>{const v=cleanVin($('vin').value);const errors=[];if(v.length!==17)errors.push('VIN must contain 17 characters.');if(/[IOQ]/.test(v))errors.push('VINs do not use I, O or Q.');let check=null,validCheck=null;if(v.length===17&&!/[IOQ]/.test(v)){check=vinCheckDigit(v);validCheck=check===v[8]}const job={job_type:'vehicle-vin-intelligence',vin:v,local_validation:{length_ok:v.length===17,forbidden_letters_ok:!/[IOQ]/.test(v),calculated_check_digit:check,position_9:v[8]||null,check_digit_matches:validCheck},requested_worker_checks:['public-vin-decode','manufacturer-model-year','public-recall-safety-references','case-correlation'],private_owner_lookup:false};$('vinOut').style.display='block';$('vinOut').textContent=(errors.length?('Warnings:\n- '+errors.join('\n- ')+'\n\n'):'')+JSON.stringify(job,null,2)};
+$('plateFile').onchange=()=>{plateFile=$('plateFile').files[0]||null;const img=$('platePreview');img.style.display='none';if(plateFile){img.src=URL.createObjectURL(plateFile);img.style.display='block'}};
+$('plateAnalyze').onclick=async()=>{const text=$('plateText').value.toUpperCase().replace(/[^A-Z0-9-]/g,'').trim();const jurisdiction=$('jurisdiction').value.trim();if(!plateFile&&!text)return alert('Add a plate image or plate text first.');let file=null;if(plateFile){const buf=await plateFile.arrayBuffer();file={name:plateFile.name,type:plateFile.type,size:plateFile.size,sha256:await sha256(buf)}}const job={job_type:'vehicle-plate-evidence',plate_text:text||null,jurisdiction:jurisdiction||null,evidence_file:file,requested_worker_checks:plateFile?['image-enhancement','plate-region-detection','ocr-candidates','ocr-confidence','manual-confirmation']:['normalize-plate-text'],case_rules:{plate_is_observation_not_identity:true,private_owner_lookup:false,private_address_lookup:false,continuous_tracking:false},created_at:new Date().toISOString()};$('plateOut').style.display='block';$('plateOut').textContent=JSON.stringify(job,null,2)};
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a0f">
+<link rel="manifest" href="manifest.json">
+<title>Scam Case Builder</title>
+<style>
+:root{--bg:#070a0f;--panel:#101821;--border:#273545;--text:#f5f7fa;--muted:#9ba8b6;--gold:#c5a059;--cyan:#1fd5d5;--red:#ff6464;--green:#57d57b;--yellow:#f1c40f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#14202e 0,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}.app{max-width:900px;margin:auto;padding:16px 16px 40px}header{padding:8px 0 14px;border-bottom:1px solid var(--border)}h1{font-size:21px;letter-spacing:.05em;margin:0 0 5px}.sub,.note{font-size:11px;line-height:1.5;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr;gap:13px}@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}.card{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#111a24,#0b1118)}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 10px}label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}input,textarea,select{width:100%;background:#080e15;color:white;border:1px solid #33465c;border-radius:9px;padding:11px;font-size:14px;margin-bottom:10px}textarea{min-height:105px;resize:vertical}button,a.btn{width:100%;display:flex;justify-content:center;align-items:center;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:13px;text-decoration:none;cursor:pointer;background:var(--gold);color:#070a0f;margin-top:6px}.secondary{background:#223040!important;color:white!important;border:1px solid #3b4e62!important}.cyan{background:var(--cyan)!important;color:#061113!important}.danger{background:var(--red)!important;color:white!important}.output{display:none;margin-top:10px;background:#060a0f;border-left:4px solid var(--gold);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.html{white-space:normal;font-family:inherit}.mini{padding:10px;border:1px solid var(--border);border-radius:10px;background:#091019}.mini strong{display:block;font-size:12px;margin-bottom:4px}.mini p{font-size:11px;line-height:1.45;color:var(--muted);margin:0}.checks label{display:flex;gap:8px;align-items:flex-start;color:#d6dee6}.checks input{width:auto;margin-top:2px}.top{display:flex;gap:8px;margin-top:10px}.top a{flex:1}.pill{font-size:10px;border:1px solid var(--border);padding:5px 7px;border-radius:999px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>SCAM / FAKE ACCOUNT CASE BUILDER</h1>
+<div class="sub">Public-source investigation, evidence preservation and reporting. No private-account access, credential theft, doxxing or hack-back.</div>
+<div class="top"><a class="btn secondary" href="index.html">← WatchDog Console</a><span class="pill">LOCAL-FIRST</span></div>
+</header>
+
+<section class="card">
+<h2>1. Case Intake</h2>
+<div class="grid two">
+<div><label>Case name / reference</label><input id="caseName" placeholder="e.g. Fake Instagram seller"><label>Platform / service</label><input id="platform" placeholder="Instagram, Facebook, Telegram, email, marketplace..."></div>
+<div><label>Public identifier</label><input id="target" placeholder="username, public email, domain, URL or display name"><label>Your relationship to the case</label><select id="role"><option>Helping myself</option><option>Helping a friend / family member</option><option>Helping another person with their permission</option><option>General public scam report</option></select></div>
+</div>
+<label>What happened?</label><textarea id="narrative" placeholder="Paste the suspicious message or describe what was claimed, requested, paid, promised, or impersonated..."></textarea>
+<button class="cyan" id="analyze">Extract Public Indicators</button>
+<div id="analysis" class="output"></div>
+</section>
+
+<section class="card">
+<h2>2. Evidence Preservation</h2>
+<div class="desc note">Hash screenshots, exported chats, PDFs or other files locally before uploading them anywhere. A SHA-256 hash helps show that a file has not changed since you recorded it.</div>
+<input id="evidenceFile" type="file" multiple>
+<button id="hashFiles">Hash Selected Files Locally</button>
+<div id="fileHashes" class="output"></div>
+<div class="checks" style="margin-top:12px">
+<label><input type="checkbox" id="c1">I saved the profile/account URL.</label>
+<label><input type="checkbox" id="c2">I captured screenshots showing date/time where possible.</label>
+<label><input type="checkbox" id="c3">I preserved payment receipts, transaction IDs or invoices.</label>
+<label><input type="checkbox" id="c4">I kept original messages/headers instead of only retyping them.</label>
+<label><input type="checkbox" id="c5">I recorded what I directly observed separately from what I suspect.</label>
+</div>
+</section>
+
+<section class="card">
+<h2>3. Public Intelligence Pivots</h2>
+<div class="note">These searches use public/indexed sources. Matching usernames, photos or names are leads, not proof that accounts belong to the same person.</div>
+<button class="cyan" id="buildPivots">Build Search Links</button>
+<div id="pivots" class="output html"></div>
+</section>
+
+<section class="card">
+<h2>4. Scam / Impersonation Indicators</h2>
+<div class="grid three">
+<div class="mini"><strong>Identity mismatch</strong><p>Recently created profile, copied bio/photos, inconsistent name/history, or reused images.</p></div>
+<div class="mini"><strong>Payment pressure</strong><p>Urgency, irreversible payment methods, off-platform payment requests, unusual wallet or gift-card instructions.</p></div>
+<div class="mini"><strong>Link / login pressure</strong><p>Requests to sign in through an unfamiliar domain, verify credentials, install software or bypass normal support channels.</p></div>
+<div class="mini"><strong>Story inconsistencies</strong><p>Claims conflict with public history, timestamps, geography, account age or previously published information.</p></div>
+<div class="mini"><strong>Contact switching</strong><p>Repeated attempts to move the victim to another app, account, number or encrypted channel.</p></div>
+<div class="mini"><strong>Impersonation</strong><p>Copied public photos or branding while contact details, handle spelling or linked domains differ from the legitimate account.</p></div>
+</div>
+</section>
+
+<section class="card">
+<h2>5. Reporting Packet</h2>
+<label>Direct observations</label><textarea id="observations" placeholder="Only things you actually saw: account URL, exact claims, messages, payment request, dates, transaction IDs..."></textarea>
+<label>Assessment / unresolved questions</label><textarea id="assessment" placeholder="What appears suspicious, what is still unverified, and what needs follow-up..."></textarea>
+<label>Recommended report destination</label><select id="destination"><option>Platform trust & safety / impersonation report</option><option>Marketplace fraud report</option><option>Domain registrar / hosting abuse desk</option><option>Payment provider fraud team</option><option>Police / fraud reporting service</option><option>Internal record only</option></select>
+<button id="download">Download Case JSON</button>
+<div class="note">Avoid publishing home addresses, private phone numbers, family details, or unsupported accusations. Preserve evidence and report through appropriate channels.</div>
+</section>
+</div>
+<script>
+const $=id=>document.getElementById(id);let lastIndicators={};let fileHashRows=[];
+function uniq(a){return [...new Set(a)]}
+function indicators(t){const urls=uniq(t.match(/https?:\/\/[^\s<>"']+/gi)||[]);const emails=uniq(t.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)||[]);const ips=uniq(t.match(/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g)||[]);const domains=[];for(const u of urls){try{domains.push(new URL(u).hostname)}catch{}}return{urls,emails,ips,domains:uniq(domains)}}
+function show(el,text,html=false){el.style.display='block';if(html)el.innerHTML=text;else el.textContent=text;}
+async function hashArrayBuffer(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+$('analyze').onclick=()=>{const text=[$('target').value,$('narrative').value].join('\n');lastIndicators=indicators(text);show($('analysis'),`URLs:\n${lastIndicators.urls.join('\n')||'none'}\n\nDomains:\n${lastIndicators.domains.join('\n')||'none'}\n\nEmails:\n${lastIndicators.emails.join('\n')||'none'}\n\nIPs:\n${lastIndicators.ips.join('\n')||'none'}\n\nReminder: indicators are evidence pivots, not proof of identity.`)};
+$('hashFiles').onclick=async()=>{const files=[...$('evidenceFile').files];if(!files.length)return alert('Choose one or more evidence files first.');fileHashRows=[];for(const f of files){const sha=await hashArrayBuffer(await f.arrayBuffer());fileHashRows.push({name:f.name,size:f.size,type:f.type||'unknown',last_modified:new Date(f.lastModified).toISOString(),sha256:sha});}show($('fileHashes'),fileHashRows.map(r=>`${r.name}\nSHA-256: ${r.sha256}\nSize: ${r.size} bytes`).join('\n\n'));};
+$('buildPivots').onclick=()=>{const q=$('target').value.trim();if(!q)return alert('Enter a public identifier first.');const exact=encodeURIComponent('"'+q+'"');const reddit=encodeURIComponent('"'+q+'" site:reddit.com');const github=encodeURIComponent(q);const docs=encodeURIComponent('"'+q+'" (filetype:pdf OR filetype:doc OR filetype:docx)');const ahmia=encodeURIComponent(q);show($('pivots'),`<a class="btn" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${exact}">Exact public web search</a><a class="btn secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${reddit}">Reddit mentions</a><a class="btn secondary" target="_blank" rel="noopener noreferrer" href="https://github.com/search?q=${github}&type=users">GitHub user search</a><a class="btn secondary" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${docs}">Indexed public documents</a><a class="btn secondary" target="_blank" rel="noopener noreferrer" href="https://ahmia.fi/search/?q=${ahmia}">Tor-index pivot via Ahmia</a>`,true)};
+$('download').onclick=async()=>{const target=$('target').value.trim();const narrative=$('narrative').value;const textHash=await hashArrayBuffer(new TextEncoder().encode([target,narrative].join('\n')));const report={format:'watchdog-scam-case-v1',created_at:new Date().toISOString(),case_name:$('caseName').value.trim(),platform:$('platform').value.trim(),role:$('role').value,target_public_identifier:target,narrative,source_text_sha256:textHash,indicators:lastIndicators,evidence_files:fileHashRows,evidence_checklist:{profile_url_saved:$('c1').checked,screenshots_saved:$('c2').checked,payment_records_saved:$('c3').checked,original_messages_preserved:$('c4').checked,observations_separated_from_suspicions:$('c5').checked},observations:$('observations').value,assessment:$('assessment').value,report_destination:$('destination').value,limitations:'Public-source findings are leads. This report does not establish identity or guilt by itself.'};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`watchdog-scam-case-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+</script>
+</body>
+</html>

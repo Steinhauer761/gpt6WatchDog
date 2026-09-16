@@ -1,0 +1,30 @@
+{
+  "category": "vehicle-intelligence",
+  "policy": {
+    "public_source_only_for_third_parties": true,
+    "private_owner_lookup": false,
+    "private_address_lookup": false,
+    "continuous_vehicle_tracking": false,
+    "plate_is_identity_proof": false
+  },
+  "modules": [
+    {
+      "id": "vin-scanner",
+      "name": "VIN Scanner",
+      "runtime": "browser-local + isolated-worker",
+      "status": "implemented-ui-worker-staged",
+      "accepted_targets": ["vin", "vehicle-record", "vehicle-photo"],
+      "purpose": "Validate 17-character VINs, prepare public manufacturer/model/year/specification decoding, recall/safety enrichment and case correlation without private owner lookup"
+    },
+    {
+      "id": "plate-scanner",
+      "name": "License Plate Scanner",
+      "runtime": "browser-local + isolated-worker",
+      "status": "implemented-ui-worker-staged",
+      "accepted_targets": ["user-supplied-plate-photo", "case-evidence-image", "plate-text"],
+      "purpose": "Hash plate evidence locally, detect/crop a plate region, produce OCR candidates with confidence, require manual confirmation, normalize jurisdiction and attach the observation to an evidence case",
+      "worker_checks": ["image-enhancement", "plate-region-detection", "ocr-candidates", "ocr-confidence", "manual-confirmation"],
+      "prohibited_outputs": ["private-owner-identity", "hidden-home-address", "continuous-location-history"]
+    }
+  ]
+}
