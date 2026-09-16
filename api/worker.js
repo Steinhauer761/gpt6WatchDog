@@ -40,6 +40,7 @@ export default async function handler(req, res) {
     health: { method: 'GET', path: '/health', protected: false },
     capabilities: { method: 'GET', path: '/v1/capabilities', protected: true },
     triage: { method: 'POST', path: '/v1/triage/text', protected: true },
+    crawl: { method: 'POST', path: '/v1/crawl/site', protected: true },
     validate: { method: 'POST', path: '/v1/jobs/validate', protected: true },
   };
 
@@ -70,6 +71,17 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'text must contain 1 to 200000 characters' });
     }
     body = { text };
+  } else if (action === 'crawl') {
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+    if (!url || url.length > 2048) {
+      return json(res, 400, { error: 'url is required and must be 2048 characters or fewer' });
+    }
+    const maxPages = Number.isInteger(req.body?.max_pages) ? req.body.max_pages : 12;
+    const maxDepth = Number.isInteger(req.body?.max_depth) ? req.body.max_depth : 1;
+    if (maxPages < 1 || maxPages > 25 || maxDepth < 0 || maxDepth > 2) {
+      return json(res, 400, { error: 'max_pages must be 1-25 and max_depth must be 0-2' });
+    }
+    body = { url, max_pages: maxPages, max_depth: maxDepth };
   } else if (action === 'validate') {
     const jobType = typeof req.body?.job_type === 'string' ? req.body.job_type.trim() : '';
     if (!jobType || jobType.length > 100) {
