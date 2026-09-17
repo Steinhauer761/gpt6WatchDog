@@ -68,7 +68,7 @@ async function fetchWorker(baseUrl, route, body, apiKey, timeoutMs) {
 }
 
 function shouldFailOver(result) {
-  return result.networkError || [500, 502, 503, 504].includes(result.status);
+  return result.networkError || [401, 500, 502, 503, 504].includes(result.status);
 }
 
 function backendSummary(result) {
