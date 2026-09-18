@@ -1,0 +1,14 @@
+[build]
+  command = "mkdir -p netlify-dist && find . -maxdepth 1 -type f \\( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.json' -o -name '*.svg' -o -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' -o -name '*.ico' \\) ! -name 'vercel.json' -exec cp {} netlify-dist/ \\;"
+  publish = "netlify-dist"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://gpt6-watch-dog.vercel.app/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/"
+  to = "/app.html"
+  status = 200
