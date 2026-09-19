@@ -15,6 +15,16 @@ def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {response.json()['token']}"}
 
 
+def mobile_headers() -> dict[str, str]:
+    pair = client.post(
+        "/v1/mobile/pair",
+        headers=auth_headers(),
+        json={"device_name": "CI Android"},
+    )
+    assert pair.status_code == 200, pair.text
+    return {"Authorization": f"Bearer {pair.json()['token']}"}
+
+
 def test_health_is_real_python_api():
     response = client.get("/health")
     assert response.status_code == 200
@@ -26,6 +36,8 @@ def test_health_is_real_python_api():
     assert "bounded-onion-crawl" in body["features"]
     assert "onion-address-discovery" in body["features"]
     assert "scam-reportability-score" in body["features"]
+    assert "android-companion-pairing" in body["features"]
+    assert "android-mobile-triage" in body["features"]
 
 
 def test_triage_requires_login_and_extracts_indicators():
@@ -43,6 +55,37 @@ def test_triage_requires_login_and_extracts_indicators():
     assert body["urls"] == ["https://example.com"]
     assert body["ipv4"] == ["8.8.8.8"]
     assert len(body["sha256"]) == 64
+
+
+def test_mobile_pairing_issues_limited_scope_token():
+    pair = client.post(
+        "/v1/mobile/pair",
+        headers=auth_headers(),
+        json={"device_name": "Pixel companion"},
+    )
+    assert pair.status_code == 200, pair.text
+    body = pair.json()
+    assert body["scope"] == "watchdog-mobile"
+    assert body["device_name"] == "Pixel companion"
+    assert body["token"]
+
+
+def test_mobile_token_can_triage_but_not_use_admin_only_tools():
+    headers = mobile_headers()
+    mobile_triage = client.post(
+        "/v1/mobile/triage/text",
+        headers=headers,
+        json={"text": "https://example.com from 8.8.8.8"},
+    )
+    assert mobile_triage.status_code == 200, mobile_triage.text
+    assert mobile_triage.json()["urls"] == ["https://example.com"]
+
+    admin_only = client.post(
+        "/v1/intel/ip",
+        headers=headers,
+        json={"ip": "8.8.8.8"},
+    )
+    assert admin_only.status_code == 401
 
 
 def test_scam_triage_scores_reportability_without_accusing_number_owner():
@@ -69,6 +112,21 @@ def test_scam_triage_scores_reportability_without_accusing_number_owner():
     assert body["report_packet"]["automatic_submission"]["submitted"] is False
     assert "displayed number" in body["report_packet"]["important_note"].lower()
     assert len(body["evidence_sha256"]) == 64
+
+
+def test_mobile_scam_triage_uses_same_scoring_engine():
+    response = client.post(
+        "/v1/mobile/scam/triage",
+        headers=mobile_headers(),
+        json={
+            "number": "+17805550103",
+            "channel": "sms",
+            "message": "Urgent: send payment by gift card and give your verification code.",
+            "unsolicited": True,
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["score"] >= 6
 
 
 def test_scam_triage_uses_requested_scale():
