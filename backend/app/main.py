@@ -6,7 +6,14 @@ from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from .auth import auth_configured, create_session_token, require_session, validate_password
+from .auth import (
+    auth_configured,
+    create_mobile_session_token,
+    create_session_token,
+    require_mobile_session,
+    require_session,
+    validate_password,
+)
 from .media import inspect_media_file
 from .scam_triage import score_scam_contact
 from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text
@@ -48,7 +55,7 @@ except Exception:
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.4.0")
+app = FastAPI(title="WatchDog API", version="1.5.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -60,6 +67,10 @@ app.add_middleware(
 
 class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=512)
+
+
+class MobilePairRequest(BaseModel):
+    device_name: str = Field(default="Android companion", min_length=1, max_length=80)
 
 
 class TextRequest(BaseModel):
@@ -146,7 +157,7 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.4.0",
+        "version": "1.5.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
@@ -164,6 +175,8 @@ def health():
             "onion-address-discovery",
             "scam-reportability-score",
             "scam-report-packet",
+            "android-companion-pairing",
+            "android-mobile-triage",
             "bounded-crawl",
             "bounded-onion-crawl",
             "onion-text-fetch",
@@ -181,6 +194,27 @@ def login(payload: LoginRequest):
         raise HTTPException(status_code=401, detail="Incorrect password")
     token, expires_at = create_session_token()
     return {"token": token, "expires_at": expires_at}
+
+
+@app.post("/v1/mobile/pair", dependencies=[Depends(require_session)])
+def mobile_pair(payload: MobilePairRequest):
+    token, expires_at = create_mobile_session_token(payload.device_name)
+    return {
+        "token": token,
+        "expires_at": expires_at,
+        "scope": "watchdog-mobile",
+        "device_name": payload.device_name,
+    }
+
+
+@app.post("/v1/mobile/triage/text", dependencies=[Depends(require_mobile_session)])
+def mobile_text_triage(payload: TextRequest):
+    return triage_text(payload.text)
+
+
+@app.post("/v1/mobile/scam/triage", dependencies=[Depends(require_mobile_session)])
+def mobile_scam_triage(payload: ScamTriageRequest):
+    return score_scam_contact(payload.model_dump())
 
 
 @app.post("/v1/assistant", dependencies=[Depends(require_session)])
