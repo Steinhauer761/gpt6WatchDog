@@ -55,11 +55,15 @@ except Exception:
     discover_onion_addresses = None
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
+# Accept WatchDog's generated Vercel production/preview hostnames without opening
+# CORS to arbitrary vercel.app projects.
+WATCHDOG_VERCEL_ORIGIN_REGEX = r"^https://gpt6-watch-dog(?:-[a-z0-9-]+)?\.vercel\.app$"
 
 app = FastAPI(title="WatchDog API", version="1.6.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=WATCHDOG_VERCEL_ORIGIN_REGEX,
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
