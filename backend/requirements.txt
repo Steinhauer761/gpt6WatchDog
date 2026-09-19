@@ -6,3 +6,4 @@ pydantic-settings==2.15.0
 crawlee[beautifulsoup,httpx]==1.10.0
 python-multipart==0.0.20
 Pillow==11.1.0
+imageio-ffmpeg==0.6.0
