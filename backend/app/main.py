@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from .auth import auth_configured, create_session_token, require_session, validate_password
 from .media import inspect_media_file
+from .scam_triage import score_scam_contact
 from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text
 from .web_probe import web_security_probe
 
@@ -47,7 +48,7 @@ except Exception:
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.3.0")
+app = FastAPI(title="WatchDog API", version="1.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -113,6 +114,22 @@ class OnionCrawlRequest(BaseModel):
     max_depth: int = Field(default=1, ge=0, le=2)
 
 
+class ScamTriageRequest(BaseModel):
+    number: str = Field(default="", max_length=64)
+    channel: str = Field(default="call", max_length=16)
+    received_at: str = Field(default="", max_length=80)
+    claimed_identity: str = Field(default="", max_length=240)
+    message: str = Field(default="", max_length=20_000)
+    repeat_count: int = Field(default=1, ge=1, le=999)
+    unsolicited: bool = True
+    requested_money: bool = False
+    requested_credentials: bool = False
+    claimed_organization: bool = False
+    threat_or_urgency: bool = False
+    caller_id_mismatch: bool = False
+    known_scam_pattern: bool = False
+
+
 class NetworkProbeRequest(BaseModel):
     target: str = Field(min_length=1, max_length=253)
     ports: list[int] = Field(default_factory=lambda: [22, 53, 80, 443, 445, 3389, 8080], min_length=1, max_length=20)
@@ -129,7 +146,7 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
@@ -145,6 +162,8 @@ def health():
             "public-osint",
             "research-search-web-tor-archive",
             "onion-address-discovery",
+            "scam-reportability-score",
+            "scam-report-packet",
             "bounded-crawl",
             "bounded-onion-crawl",
             "onion-text-fetch",
@@ -172,6 +191,11 @@ async def assistant(payload: AssistantRequest):
 @app.post("/v1/triage/text", dependencies=[Depends(require_session)])
 def triage(payload: TextRequest):
     return triage_text(payload.text)
+
+
+@app.post("/v1/scam/triage", dependencies=[Depends(require_session)])
+def scam_triage(payload: ScamTriageRequest):
+    return score_scam_contact(payload.model_dump())
 
 
 @app.post("/v1/media/inspect", dependencies=[Depends(require_session)])
