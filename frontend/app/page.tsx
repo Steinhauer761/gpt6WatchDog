@@ -5,6 +5,7 @@ import DeviceLab from "../components/DeviceLab";
 import MediaInspector from "../components/MediaInspector";
 import ResearchConsole from "../components/ResearchConsole";
 import ResearchIdentityVault from "../components/ResearchIdentityVault";
+import ScamTriage from "../components/ScamTriage";
 
 const API_URL = (process.env.NEXT_PUBLIC_WATCHDOG_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -86,6 +87,7 @@ export default function Home() {
     <div className="grid">
       <ToolCard title="WatchDog Assistant" description="Sends your question to OpenAI from the Python backend; the API key never enters the browser."><textarea value={assistantText} onChange={e => setAssistantText(e.target.value)} placeholder="Ask WatchDog…" /><button onClick={() => run("assistant", "/v1/assistant", { method: "POST", body: JSON.stringify({ message: assistantText, history: [] }) })}>Send</button>{results.assistant !== undefined && <pre className="output">{pretty(results.assistant)}</pre>}</ToolCard>
       <ToolCard title="Evidence Triage" description="Hashes text and extracts URLs, emails and IPv4 indicators in Python."><textarea value={triageText} onChange={e => setTriageText(e.target.value)} placeholder="Paste message, header or log text…" /><button onClick={() => run("triage", "/v1/triage/text", { method: "POST", body: JSON.stringify({ text: triageText }) })}>Analyze</button>{results.triage !== undefined && <pre className="output">{pretty(results.triage)}</pre>}</ToolCard>
+      <ScamTriage token={token} />
       <MediaInspector token={token} />
       <ResearchConsole token={token} />
       <ResearchIdentityVault />
