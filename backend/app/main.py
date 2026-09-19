@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field
 
 from .auth import auth_configured, create_session_token, require_session, validate_password
 from .media import inspect_media_file
-from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text, web_security_probe
+from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text
+from .web_probe import web_security_probe
 
 WORKER_DIR = Path(__file__).resolve().parents[2] / "worker"
 if WORKER_DIR.exists() and str(WORKER_DIR) not in sys.path:
@@ -16,16 +17,32 @@ if WORKER_DIR.exists() and str(WORKER_DIR) not in sys.path:
 
 try:
     from public_osint import PublicSearchError, search_public_sources
-    from web_crawl import PublicUrlError, crawl_public_site
 except Exception:
     PublicSearchError = ValueError
-    PublicUrlError = ValueError
     search_public_sources = None
+
+try:
+    from web_crawl import PublicUrlError, crawl_public_site
+except Exception:
+    PublicUrlError = ValueError
     crawl_public_site = None
+
+try:
+    from research_search import ResearchSearchError, search_research_sources
+except Exception:
+    ResearchSearchError = ValueError
+    search_research_sources = None
+
+try:
+    from tor_research import TorResearchError, crawl_onion_site, fetch_onion_text
+except Exception:
+    TorResearchError = ValueError
+    crawl_onion_site = None
+    fetch_onion_text = None
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.1.0")
+app = FastAPI(title="WatchDog API", version="1.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -63,9 +80,25 @@ class PublicSearchRequest(BaseModel):
     max_per_source: int = Field(default=6, ge=1, le=10)
 
 
+class ResearchSearchRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=320)
+    scope: str = Field(default="both", max_length=8)
+    max_results: int = Field(default=12, ge=1, le=20)
+
+
 class CrawlRequest(BaseModel):
     url: str = Field(min_length=1, max_length=2048)
     max_pages: int = Field(default=10, ge=1, le=25)
+    max_depth: int = Field(default=1, ge=0, le=2)
+
+
+class OnionRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=2048)
+
+
+class OnionCrawlRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=2048)
+    max_pages: int = Field(default=8, ge=1, le=12)
     max_depth: int = Field(default=1, ge=0, le=2)
 
 
@@ -85,11 +118,12 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
         "openai_key_configured": bool(os.environ.get("OPENAI_API_KEY", "").strip()),
+        "tor_proxy_configured": bool(os.environ.get("TOR_SOCKS_PROXY", "").strip()),
         "features": [
             "assistant",
             "triage",
@@ -98,7 +132,10 @@ def health():
             "vin-decode",
             "geocode",
             "public-osint",
+            "research-search-web-tor-archive",
             "bounded-crawl",
+            "bounded-onion-crawl",
+            "onion-text-fetch",
             "authorized-network-probe",
             "authorized-web-security-probe",
         ],
@@ -157,6 +194,18 @@ async def osint_search(payload: PublicSearchRequest):
         raise HTTPException(status_code=502, detail=f"Public-source search failed: {type(exc).__name__}") from exc
 
 
+@app.post("/v1/research/search", dependencies=[Depends(require_session)])
+async def research_search(payload: ResearchSearchRequest):
+    if search_research_sources is None:
+        raise HTTPException(status_code=503, detail="Research search modules are unavailable")
+    try:
+        return await search_research_sources(payload.query, payload.scope, payload.max_results)
+    except ResearchSearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Research search failed: {type(exc).__name__}") from exc
+
+
 @app.post("/v1/crawl/site", dependencies=[Depends(require_session)])
 async def crawl(payload: CrawlRequest):
     if crawl_public_site is None:
@@ -167,6 +216,30 @@ async def crawl(payload: CrawlRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Site crawl failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/research/onion/fetch", dependencies=[Depends(require_session)])
+async def onion_fetch(payload: OnionRequest):
+    if fetch_onion_text is None:
+        raise HTTPException(status_code=503, detail="Tor research module is unavailable")
+    try:
+        return await fetch_onion_text(payload.url)
+    except TorResearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Onion fetch failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/research/onion/crawl", dependencies=[Depends(require_session)])
+async def onion_crawl(payload: OnionCrawlRequest):
+    if crawl_onion_site is None:
+        raise HTTPException(status_code=503, detail="Tor crawler module is unavailable")
+    try:
+        return await crawl_onion_site(payload.url, max_pages=payload.max_pages, max_depth=payload.max_depth)
+    except TorResearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Onion crawl failed: {type(exc).__name__}") from exc
 
 
 @app.post("/v1/probe/network", dependencies=[Depends(require_session)])
