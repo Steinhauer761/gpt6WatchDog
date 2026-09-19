@@ -25,6 +25,7 @@ def test_health_is_real_python_api():
     assert "research-search-web-tor-archive" in body["features"]
     assert "bounded-onion-crawl" in body["features"]
     assert "onion-address-discovery" in body["features"]
+    assert "scam-reportability-score" in body["features"]
 
 
 def test_triage_requires_login_and_extracts_indicators():
@@ -42,6 +43,45 @@ def test_triage_requires_login_and_extracts_indicators():
     assert body["urls"] == ["https://example.com"]
     assert body["ipv4"] == ["8.8.8.8"]
     assert len(body["sha256"]) == 64
+
+
+def test_scam_triage_scores_reportability_without_accusing_number_owner():
+    response = client.post(
+        "/v1/scam/triage",
+        headers=auth_headers(),
+        json={
+            "number": "+1 780 555 0101",
+            "channel": "call",
+            "claimed_identity": "CRA",
+            "message": "Urgent. Pay with gift cards or your account will be suspended. Give us your verification code.",
+            "repeat_count": 3,
+            "unsolicited": True,
+            "requested_money": True,
+            "requested_credentials": True,
+            "claimed_organization": True,
+            "threat_or_urgency": True,
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["score"] == 10
+    assert body["disposition"] == "reportable"
+    assert body["report_packet"]["automatic_submission"]["submitted"] is False
+    assert "displayed number" in body["report_packet"]["important_note"].lower()
+    assert len(body["evidence_sha256"]) == 64
+
+
+def test_scam_triage_uses_requested_scale():
+    response = client.post(
+        "/v1/scam/triage",
+        headers=auth_headers(),
+        json={"number": "+17805550102", "message": "Hello", "unsolicited": False},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["score"] == 1
+    assert body["disposition"] == "not_reportable"
+    assert body["scale"]["5"] == "uncertain"
 
 
 def test_media_inspection_hashes_and_reads_image_dimensions():
