@@ -334,7 +334,7 @@ public final class MainActivity extends Activity {
     private void showTechnicalDetails() {
         String message = lastTechnical == null
                 ? "Run a scan first."
-                : lastTechnical.toString(2);
+                : lastTechnical.toString();
         new AlertDialog.Builder(this)
                 .setTitle("Technical details")
                 .setMessage(message)
