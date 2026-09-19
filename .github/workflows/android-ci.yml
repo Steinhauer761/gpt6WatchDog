@@ -1,0 +1,29 @@
+name: Android companion CI
+
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - "backend/app/auth.py"
+      - "backend/app/main.py"
+      - "backend/tests/**"
+      - ".github/workflows/android-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.4.1"
+      - name: Install Android SDK 37
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+      - name: Build debug APK
+        run: gradle -p android :app:assembleDebug --stacktrace
