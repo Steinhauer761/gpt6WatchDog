@@ -40,9 +40,14 @@ except Exception:
     crawl_onion_site = None
     fetch_onion_text = None
 
+try:
+    from onion_discovery import discover_onion_addresses
+except Exception:
+    discover_onion_addresses = None
+
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.2.0")
+app = FastAPI(title="WatchDog API", version="1.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -86,6 +91,12 @@ class ResearchSearchRequest(BaseModel):
     max_results: int = Field(default=12, ge=1, le=20)
 
 
+class OnionDiscoveryRequest(BaseModel):
+    query: str = Field(default="", max_length=320)
+    category: str = Field(default="all", max_length=32)
+    max_results: int = Field(default=100, ge=1, le=100)
+
+
 class CrawlRequest(BaseModel):
     url: str = Field(min_length=1, max_length=2048)
     max_pages: int = Field(default=10, ge=1, le=25)
@@ -118,7 +129,7 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
@@ -133,6 +144,7 @@ def health():
             "geocode",
             "public-osint",
             "research-search-web-tor-archive",
+            "onion-address-discovery",
             "bounded-crawl",
             "bounded-onion-crawl",
             "onion-text-fetch",
@@ -204,6 +216,18 @@ async def research_search(payload: ResearchSearchRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Research search failed: {type(exc).__name__}") from exc
+
+
+@app.post("/v1/research/onion/discover", dependencies=[Depends(require_session)])
+async def onion_discover(payload: OnionDiscoveryRequest):
+    if discover_onion_addresses is None:
+        raise HTTPException(status_code=503, detail="Onion discovery module is unavailable")
+    try:
+        return await discover_onion_addresses(payload.query, payload.category, payload.max_results)
+    except TorResearchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Onion discovery failed: {type(exc).__name__}") from exc
 
 
 @app.post("/v1/crawl/site", dependencies=[Depends(require_session)])

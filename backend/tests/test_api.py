@@ -24,6 +24,7 @@ def test_health_is_real_python_api():
     assert "media-inspection" in body["features"]
     assert "research-search-web-tor-archive" in body["features"]
     assert "bounded-onion-crawl" in body["features"]
+    assert "onion-address-discovery" in body["features"]
 
 
 def test_triage_requires_login_and_extracts_indicators():
@@ -75,6 +76,42 @@ def test_research_search_is_a_real_authenticated_endpoint(monkeypatch):
     body = response.json()
     assert body["query"] == "public records"
     assert body["result_count"] == 1
+
+
+def test_onion_discovery_is_a_real_authenticated_endpoint(monkeypatch):
+    async def fake_discovery(query: str, category: str, max_results: int):
+        return {
+            "query": query,
+            "category": category,
+            "result_count": 1,
+            "results": [{
+                "url": "http://abcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstuvwxyz2345.onion",
+                "host": "abcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstuvwxyz2345.onion",
+                "source_count": 2,
+                "mention_count": 3,
+                "sources": ["Reddit", "Ahmia public index"],
+            }],
+        }
+
+    monkeypatch.setattr(main_module, "discover_onion_addresses", fake_discovery)
+    response = client.post(
+        "/v1/research/onion/discover",
+        headers=auth_headers(),
+        json={"query": "news", "category": "news", "max_results": 100},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["category"] == "news"
+    assert body["result_count"] == 1
+    assert body["results"][0]["source_count"] == 2
+
+
+def test_onion_discovery_requires_login():
+    response = client.post(
+        "/v1/research/onion/discover",
+        json={"query": "news", "category": "news", "max_results": 10},
+    )
+    assert response.status_code == 401
 
 
 def test_onion_crawler_rejects_non_onion_urls():
