@@ -31,6 +31,10 @@ function base64ToBytes(value: string) {
   return Uint8Array.from(binary, char => char.charCodeAt(0));
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
 function randomInt(max: number) {
   const values = new Uint32Array(1);
   crypto.getRandomValues(values);
@@ -54,7 +58,7 @@ function generatePassword(length = 24) {
 async function deriveKey(passphrase: string, salt: Uint8Array) {
   const baseKey = await crypto.subtle.importKey("raw", encoder.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: 250_000 },
+    { name: "PBKDF2", hash: "SHA-256", salt: toArrayBuffer(salt), iterations: 250_000 },
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
@@ -66,7 +70,11 @@ async function encryptRecord(record: IdentityRecord, passphrase: string): Promis
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(passphrase, salt);
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(JSON.stringify(record)));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: toArrayBuffer(iv) },
+    key,
+    encoder.encode(JSON.stringify(record)),
+  );
   return {
     version: 1,
     salt: bytesToBase64(salt),
@@ -79,7 +87,11 @@ async function decryptRecord(vault: EncryptedVault, passphrase: string): Promise
   const salt = base64ToBytes(vault.salt);
   const iv = base64ToBytes(vault.iv);
   const key = await deriveKey(passphrase, salt);
-  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, base64ToBytes(vault.ciphertext));
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: toArrayBuffer(iv) },
+    key,
+    toArrayBuffer(base64ToBytes(vault.ciphertext)),
+  );
   return JSON.parse(decoder.decode(plaintext));
 }
 
