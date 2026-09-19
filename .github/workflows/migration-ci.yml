@@ -14,20 +14,24 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      WATCHDOG_ADMIN_PASSWORD: ci-password
+      WATCHDOG_SESSION_SECRET: ci-session-secret-at-least-32-characters
+      WATCHDOG_ALLOWED_ORIGINS: http://localhost:3000
+      WATCHDOG_AI_ENABLED: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
-          cache-dependency-path: backend/requirements.txt
-      - run: pip install -r backend/requirements.txt
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
       - run: python -m compileall -q backend worker
+      - run: pytest -q backend/tests
       - name: Import FastAPI app
-        env:
-          WATCHDOG_ADMIN_PASSWORD: ci-password
-          WATCHDOG_SESSION_SECRET: ci-session-secret-at-least-32-characters
-          WATCHDOG_ALLOWED_ORIGINS: http://localhost:3000
         run: python -c "from backend.app.main import app; print(app.title, app.version)"
 
   frontend:
