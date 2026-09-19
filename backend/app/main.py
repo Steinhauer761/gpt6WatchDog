@@ -2,11 +2,12 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from .auth import auth_configured, create_session_token, require_session, validate_password
+from .media import inspect_media_file
 from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text, web_security_probe
 
 WORKER_DIR = Path(__file__).resolve().parents[2] / "worker"
@@ -24,7 +25,7 @@ except Exception:
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.0.0")
+app = FastAPI(title="WatchDog API", version="1.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -84,12 +85,23 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
         "openai_key_configured": bool(os.environ.get("OPENAI_API_KEY", "").strip()),
-        "features": ["assistant", "triage", "ip-intel", "vin-decode", "geocode", "public-osint", "bounded-crawl", "authorized-network-probe", "authorized-web-security-probe"],
+        "features": [
+            "assistant",
+            "triage",
+            "media-inspection",
+            "ip-intel",
+            "vin-decode",
+            "geocode",
+            "public-osint",
+            "bounded-crawl",
+            "authorized-network-probe",
+            "authorized-web-security-probe",
+        ],
     }
 
 
@@ -111,6 +123,11 @@ async def assistant(payload: AssistantRequest):
 @app.post("/v1/triage/text", dependencies=[Depends(require_session)])
 def triage(payload: TextRequest):
     return triage_text(payload.text)
+
+
+@app.post("/v1/media/inspect", dependencies=[Depends(require_session)])
+async def media_inspect(file: UploadFile = File(...)):
+    return await inspect_media_file(file)
 
 
 @app.post("/v1/intel/ip", dependencies=[Depends(require_session)])
