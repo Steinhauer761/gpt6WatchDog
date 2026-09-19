@@ -11,6 +11,7 @@ A feature is not added to the new frontend unless it has a real FastAPI endpoint
 - Python session login
 - OpenAI assistant from Python only
 - Evidence text hashing and indicator extraction
+- Media file SHA-256 hashing and image metadata / EXIF inspection
 - Public IP intelligence
 - NHTSA VIN decoding
 - OpenStreetMap/Nominatim place search
@@ -26,6 +27,8 @@ A feature is not added to the new frontend unless it has a real FastAPI endpoint
 The browser never receives OPENAI_API_KEY or WATCHDOG_WORKER_API_KEY. The user signs in to the Python API with WATCHDOG_ADMIN_PASSWORD. Python issues a short-lived HMAC-signed session token. All application tools except `/health` and `/v1/auth/login` require that session.
 
 Active network checks still require a separate per-action authorization confirmation and reject private, loopback, link-local, reserved and non-global targets.
+
+Uploaded media is limited to 25 MB. The backend hashes the submitted bytes and extracts image metadata where available. Metadata is treated as evidence context only because it can be removed, changed or forged.
 
 ## Local run
 
