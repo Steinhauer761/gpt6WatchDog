@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import MediaInspector from "../components/MediaInspector";
 
 const API_URL = (process.env.NEXT_PUBLIC_WATCHDOG_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -108,6 +109,7 @@ export default function Home() {
     <div className="grid">
       <ToolCard title="WatchDog Assistant" description="Sends your question to OpenAI from the Python backend; the API key never enters the browser."><textarea value={assistantText} onChange={e => setAssistantText(e.target.value)} placeholder="Ask WatchDog…" /><button onClick={() => run("assistant", "/v1/assistant", { method: "POST", body: JSON.stringify({ message: assistantText, history: [] }) })}>Send</button>{results.assistant !== undefined && <pre className="output">{pretty(results.assistant)}</pre>}</ToolCard>
       <ToolCard title="Evidence Triage" description="Hashes text and extracts URLs, emails and IPv4 indicators in Python."><textarea value={triageText} onChange={e => setTriageText(e.target.value)} placeholder="Paste message, header or log text…" /><button onClick={() => run("triage", "/v1/triage/text", { method: "POST", body: JSON.stringify({ text: triageText }) })}>Analyze</button>{results.triage !== undefined && <pre className="output">{pretty(results.triage)}</pre>}</ToolCard>
+      <MediaInspector token={token} />
       <ToolCard title="Public IP Intelligence" description="Looks up approximate public network location and ASN context. It does not identify a person's exact location."><input value={ip} onChange={e => setIp(e.target.value)} placeholder="8.8.8.8" /><button onClick={() => run("ip", "/v1/intel/ip", { method: "POST", body: JSON.stringify({ ip }) })}>Look up IP</button>{results.ip !== undefined && <pre className="output">{pretty(results.ip)}</pre>}</ToolCard>
       <ToolCard title="Vehicle VIN Decode" description="Queries the public NHTSA vPIC service through Python."><input value={vin} onChange={e => setVin(e.target.value.toUpperCase())} placeholder="17-character VIN" maxLength={17} /><button onClick={() => run("vin", `/v1/vehicle/vin/${encodeURIComponent(vin)}`)}>Decode VIN</button>{results.vin !== undefined && <pre className="output">{pretty(results.vin)}</pre>}</ToolCard>
       <ToolCard title="Map + Place Search" description="Queries OpenStreetMap Nominatim and returns map and Street View handoff links."><input value={place} onChange={e => setPlace(e.target.value)} placeholder="Address, landmark, city…" /><button onClick={() => run("place", `/v1/maps/geocode?q=${encodeURIComponent(place)}`)}>Search</button>{results.place !== undefined && <pre className="output">{pretty(results.place)}</pre>}</ToolCard>
