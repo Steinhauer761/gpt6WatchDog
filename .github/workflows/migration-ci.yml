@@ -15,6 +15,7 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     env:
+      PYTHONPATH: .
       WATCHDOG_ADMIN_PASSWORD: ci-password
       WATCHDOG_SESSION_SECRET: ci-session-secret-at-least-32-characters
       WATCHDOG_ALLOWED_ORIGINS: http://localhost:3000
@@ -30,7 +31,7 @@ jobs:
             backend/requirements-dev.txt
       - run: pip install -r backend/requirements-dev.txt
       - run: python -m compileall -q backend worker
-      - run: pytest -q backend/tests
+      - run: python -m pytest -q backend/tests
       - name: Import FastAPI app
         run: python -c "from backend.app.main import app; print(app.title, app.version)"
 
