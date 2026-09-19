@@ -15,6 +15,7 @@ from .auth import (
     validate_password,
 )
 from .media import inspect_media_file
+from .media_routes import router as media_studio_router
 from .scam_triage import score_scam_contact
 from .services import ask_openai, decode_vin, geocode, lookup_public_ip, network_probe, triage_text
 from .web_probe import web_security_probe
@@ -55,7 +56,7 @@ except Exception:
 
 ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 
-app = FastAPI(title="WatchDog API", version="1.5.0")
+app = FastAPI(title="WatchDog API", version="1.6.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -63,6 +64,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
+app.include_router(media_studio_router)
 
 
 class LoginRequest(BaseModel):
@@ -157,7 +159,7 @@ def health():
     return {
         "status": "ok",
         "service": "watchdog-api",
-        "version": "1.5.0",
+        "version": "1.6.0",
         "python_backend": True,
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
@@ -167,6 +169,8 @@ def health():
             "assistant",
             "triage",
             "media-inspection",
+            "open-media-search",
+            "video-edit-render",
             "ip-intel",
             "vin-decode",
             "geocode",

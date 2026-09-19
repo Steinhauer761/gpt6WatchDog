@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MediaStudio from "./MediaStudio";
 
 const API_URL = (process.env.NEXT_PUBLIC_WATCHDOG_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -32,7 +33,7 @@ export default function MediaInspector({ token }: { token: string }) {
     }
   }
 
-  return (
+  return <>
     <section className="card">
       <h2>Media Forensics</h2>
       <p>Uploads a file to the authenticated Python backend for SHA-256 hashing and image metadata inspection. Files are limited to 25 MB.</p>
@@ -40,5 +41,6 @@ export default function MediaInspector({ token }: { token: string }) {
       <button onClick={inspect} disabled={!file || busy}>{busy ? "Inspecting…" : "Inspect file"}</button>
       {result !== null && <pre className="output">{typeof result === "string" ? result : JSON.stringify(result, null, 2)}</pre>}
     </section>
-  );
+    <MediaStudio token={token} />
+  </>;
 }
