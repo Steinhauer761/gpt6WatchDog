@@ -63,6 +63,10 @@ async function api(path: string, token: string, body: unknown) {
   return data;
 }
 
+function isOnion(url?: string) {
+  return Boolean(url && (url.endsWith(".onion") || url.includes(".onion/")));
+}
+
 export default function ResearchConsole({ token }: { token: string }) {
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState("both");
@@ -77,6 +81,8 @@ export default function ResearchConsole({ token }: { token: string }) {
   const [discoverError, setDiscoverError] = useState("");
 
   const [onionUrl, setOnionUrl] = useState("");
+  const [previewResult, setPreviewResult] = useState<unknown>(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
   const [onionResult, setOnionResult] = useState<unknown>(null);
   const [onionBusy, setOnionBusy] = useState(false);
 
@@ -107,6 +113,21 @@ export default function ResearchConsole({ token }: { token: string }) {
       setDiscoverResult(null);
     } finally {
       setDiscoverBusy(false);
+    }
+  }
+
+  async function previewOnion(url?: string) {
+    const selected = (url || onionUrl).trim();
+    if (!selected) return;
+    setOnionUrl(selected);
+    setPreviewBusy(true);
+    setPreviewResult(null);
+    try {
+      setPreviewResult(await api("/v1/research/onion/fetch", token, { url: selected }));
+    } catch (error: any) {
+      setPreviewResult({ error: error.message });
+    } finally {
+      setPreviewBusy(false);
     }
   }
 
@@ -141,8 +162,9 @@ export default function ResearchConsole({ token }: { token: string }) {
       {(searchResult.results || []).map((item, index) => <div key={`${item.url || item.title}-${index}`} style={{ marginTop: 12 }}>
         <strong>{item.title || item.url || "Untitled result"}</strong>
         <div>{item.source || "Source"} · {item.surface || "web"}{item.media_type ? ` · ${item.media_type}` : ""}</div>
-        {item.url?.endsWith(".onion") || item.url?.includes(".onion/") ? <code>{item.url}</code> : item.url ? <a href={item.url} target="_blank" rel="noreferrer">{item.url}</a> : null}
+        {isOnion(item.url) ? <code style={{ display: "block", overflowWrap: "anywhere" }}>{item.url}</code> : item.url ? <a href={item.url} target="_blank" rel="noreferrer">{item.url}</a> : null}
         {item.snippet && <div>{item.snippet}</div>}
+        {isOnion(item.url) && <button className="secondary" style={{ marginTop: 8 }} onClick={() => previewOnion(item.url)}>Preview through Tor</button>}
       </div>)}
       {searchResult.note && <div style={{ marginTop: 12 }}>{searchResult.note}</div>}
     </div>}
@@ -175,15 +197,24 @@ export default function ResearchConsole({ token }: { token: string }) {
           {mention.source_url && <div><a href={mention.source_url} target="_blank" rel="noreferrer">View public mention</a></div>}
           {mention.title && <div>{mention.title}</div>}
         </div>)}
-        {item.url && <button className="secondary" style={{ marginTop: 8 }} onClick={() => setOnionUrl(item.url || "")}>Use in onion crawler</button>}
+        {item.url && <div className="actions" style={{ marginTop: 8 }}>
+          <button className="secondary" onClick={() => previewOnion(item.url)}>Preview through Tor</button>
+          <button className="secondary" onClick={() => setOnionUrl(item.url || "")}>Use in crawler</button>
+        </div>}
       </div>)}
       {discoverResult.note && <div style={{ marginTop: 12 }}>{discoverResult.note}</div>}
     </div>}
 
     <hr style={{ margin: "20px 0", opacity: 0.25 }} />
+    <h3>Tor Preview + Bounded Crawl</h3>
+    <p>Preview first. WatchDog fetches text through the backend Tor proxy and returns status, title, content type and hash without opening the onion site in your normal browser.</p>
     <label>Known .onion URL</label>
     <input value={onionUrl} onChange={event => setOnionUrl(event.target.value)} placeholder="http://56-character-v3-address.onion/" />
-    <button className="secondary" disabled={!onionUrl.trim() || onionBusy} onClick={crawlOnion}>{onionBusy ? "Crawling through Tor…" : "Crawl onion site"}</button>
+    <div className="actions">
+      <button disabled={!onionUrl.trim() || previewBusy} onClick={() => previewOnion()}>{previewBusy ? "Previewing through Tor…" : "Preview safely through Tor"}</button>
+      <button className="secondary" disabled={!onionUrl.trim() || onionBusy} onClick={crawlOnion}>{onionBusy ? "Crawling through Tor…" : "Crawl onion site"}</button>
+    </div>
+    {previewResult !== null && <pre className="output">{JSON.stringify(previewResult, null, 2)}</pre>}
     {onionResult !== null && <pre className="output">{JSON.stringify(onionResult, null, 2)}</pre>}
   </section>;
 }
