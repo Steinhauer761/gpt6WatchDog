@@ -1,7 +1,10 @@
 "use client";
 
+import "./impact.css";
+
 import { FormEvent, useEffect, useState } from "react";
 import DeviceLab from "../components/DeviceLab";
+import ImpactLedger from "../components/ImpactLedger";
 import MediaInspector from "../components/MediaInspector";
 import ResearchConsole from "../components/ResearchConsole";
 import ResearchIdentityVault from "../components/ResearchIdentityVault";
@@ -117,6 +120,7 @@ export default function Home() {
       <span className="status ok">AVAILABLE</span>
     </div>
     <div className="grid public-grid">
+      <ImpactLedger />
       <ResearchIdentityVault />
       <DeviceLab />
     </div>
