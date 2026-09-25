@@ -16,6 +16,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from abuse_guardrails import worker_guardrail_middleware, worker_guardrail_status
 from intel import IntelLookupError, lookup_public_ip
 from public_osint import PublicSearchError, search_public_sources
 from tor_research import TOR_SOCKS_PROXY, TorResearchError, fetch_onion_text, search_ahmia
@@ -25,6 +26,7 @@ API_KEY = os.environ.get("WATCHDOG_WORKER_API_KEY", "").strip()
 ALLOWED_ORIGINS = [x.strip() for x in os.environ.get("WATCHDOG_ALLOWED_ORIGINS", "").split(",") if x.strip()]
 
 app = FastAPI(title="WatchDog Worker API", version="0.4.0")
+app.middleware("http")(worker_guardrail_middleware)
 
 if ALLOWED_ORIGINS:
     app.add_middleware(
@@ -184,6 +186,7 @@ def health():
         "version": "0.4.0",
         "api_key_configured": bool(API_KEY),
         "allowed_origins_configured": bool(ALLOWED_ORIGINS),
+        "abuse_guardrails": worker_guardrail_status(),
         "runtime": {
             "docker_detected": os.path.exists("/.dockerenv"),
             "python": sys.version.split()[0],

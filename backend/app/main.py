@@ -14,6 +14,7 @@ from .auth import (
     require_session,
     validate_password,
 )
+from .abuse_guardrails import abuse_guardrail_middleware, guardrail_status
 from .media import inspect_media_file
 from .media_routes import router as media_studio_router
 from .scam_triage import score_scam_contact
@@ -60,6 +61,7 @@ ALLOWED_ORIGINS = [value.strip() for value in os.environ.get("WATCHDOG_ALLOWED_O
 WATCHDOG_VERCEL_ORIGIN_REGEX = r"^https://gpt6-watch-dog(?:-[a-z0-9-]+)?\.vercel\.app$"
 
 app = FastAPI(title="WatchDog API", version="1.6.0")
+app.middleware("http")(abuse_guardrail_middleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -168,6 +170,7 @@ def health():
         "auth_configured": auth_configured(),
         "ai_enabled": os.environ.get("WATCHDOG_AI_ENABLED", "false").lower() == "true",
         "openai_key_configured": bool(os.environ.get("OPENAI_API_KEY", "").strip()),
+        "abuse_guardrails": guardrail_status(),
         "tor_proxy_configured": bool(os.environ.get("TOR_SOCKS_PROXY", "").strip()),
         "features": [
             "assistant",
